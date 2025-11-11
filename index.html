@@ -78,6 +78,11 @@
       <button id="btnSetToken">GitHub Token</button>
       <button id="btnSaveGist" class="primary">保存到Gist</button>
       <button id="btnLoadGist">从Gist加载</button>
+          <button id="btnGoogleClient">Google ClientID</button>
+      <button id="btnGoogleSignIn">登录Google</button>
+      <button id="btnGoogleSignOut">退出</button>
+      <button id="btnSaveDrive" class="primary">保存到Drive</button>
+      <button id="btnLoadDrive">从Drive加载</button>
     </div>
   </header>
 
@@ -585,6 +590,124 @@
       self.addEventListener('fetch', e=>{ e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))); });
     `],{type:'text/javascript'}))); }catch(e){ console.warn('SW 注册失败', e); }
   }
+  </script>
+  <!-- Google Drive ClientID 弹窗 -->
+  <div class="modal" id="driveModal">
+    <div class="modal-content">
+      <h3>设置 Google OAuth Client ID</h3>
+      <div style="font-size:.9rem;color:#666;margin:6px 0 10px">到 Google Cloud 创建 <strong>OAuth 2.0 Client ID（Web 应用）</strong>，授权 JavaScript 来源填你的 GitHub Pages 域名。</div>
+      <input type="text" id="driveClientIdInput" placeholder="粘贴你的 Google OAuth Client ID" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px"/>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="btnSaveDriveClient" class="success">保存</button>
+        <button id="btnCloseDriveClient">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Google Drive 同步 ======
+    const DRIVE_CLIENT_ID_KEY = KEY('gdrive_client_id');
+    const DRIVE_FILE_ID_KEY   = KEY('gdrive_file_id');
+    let googleAccessToken = null;
+
+    function loadGis(){
+      return new Promise((resolve)=>{
+        if(window.google && google.accounts) return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.async = true; s.onload = resolve; document.head.appendChild(s);
+      });
+    }
+
+    async function getAccessToken(){
+      await loadGis();
+      const clientId = localStorage.getItem(DRIVE_CLIENT_ID_KEY);
+      if(!clientId){ document.getElementById('driveModal').style.display='flex'; throw new Error('未设置 Google Client ID'); }
+      return new Promise((resolve)=>{
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          callback: (t)=>{ googleAccessToken = t.access_token; resolve(googleAccessToken); }
+        });
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      });
+    }
+
+    function revokeGoogle(){
+      if(!googleAccessToken) return alert('未登录或令牌已过期');
+      google.accounts.oauth2.revoke(googleAccessToken, ()=>{});
+      googleAccessToken = null;
+      alert('已退出 Google 授权');
+    }
+
+    function buildMultipartBody(metadata, content){
+      const boundary = '-------habits-' + Math.random().toString(16).slice(2);
+      const pre = `--${boundary}
+Content-Type: application/json; charset=UTF-8
+
+${JSON.stringify(metadata)}
+`;
+      const mid = `--${boundary}
+Content-Type: application/json
+
+${content}
+`;
+      const end = `--${boundary}--`;
+      return { body: pre + mid + end, boundary };
+    }
+
+    async function saveToDrive(){
+      const token = await getAccessToken();
+      const snapshot = JSON.stringify(buildSnapshot(), null, 2);
+      let fileId = localStorage.getItem(DRIVE_FILE_ID_KEY);
+      const metadata = { name:'habit-data.json', mimeType:'application/json' };
+      const { body, boundary } = buildMultipartBody(metadata, snapshot);
+      const headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary };
+      const url = fileId ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      const method = fileId ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers, body });
+      if(!res.ok){ throw new Error(await res.text()); }
+      const data = await res.json();
+      localStorage.setItem(DRIVE_FILE_ID_KEY, data.id);
+      alert('已保存到 Google Drive：' + data.id);
+    }
+
+    async function findDriveFileId(token){
+      const q = encodeURIComponent("name='habit-data.json' and trashed=false");
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, { headers: { 'Authorization': 'Bearer ' + token } });
+      if(!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return (data.files && data.files[0] && data.files[0].id) || null;
+    }
+
+    async function loadFromDrive(){
+      const token = await getAccessToken();
+      let fileId = localStorage.getItem(DRIVE_FILE_ID_KEY);
+      if(!fileId){ fileId = await findDriveFileId(token); if(!fileId) throw new Error('Drive 中未找到 habit-data.json'); localStorage.setItem(DRIVE_FILE_ID_KEY, fileId); }
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { 'Authorization': 'Bearer ' + token } });
+      if(!res.ok) throw new Error(await res.text());
+      const snapshot = await res.json();
+      if(!snapshot.children) throw new Error('数据格式不正确');
+      // 应用
+      children = snapshot.children; archives = snapshot.archives || [];
+      if(snapshot.checks){ Object.keys(snapshot.checks).forEach(id => safeSet(KEY('checks:'+id), snapshot.checks[id])); }
+      saveAll(); renderAll(); if(children[0]) switchTo(children[0].id);
+      alert('已从 Google Drive 加载完成');
+    }
+
+    // 绑定按钮
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.getElementById('btnGoogleClient').onclick = ()=>{ document.getElementById('driveModal').style.display='flex'; };
+      document.getElementById('btnGoogleSignIn').onclick = ()=>{ getAccessToken().catch(e=>alert(e.message)); };
+      document.getElementById('btnGoogleSignOut').onclick = revokeGoogle;
+      document.getElementById('btnSaveDrive').onclick = ()=>{ saveToDrive().catch(e=>alert('保存失败：'+e.message)); };
+      document.getElementById('btnLoadDrive').onclick = ()=>{ loadFromDrive().catch(e=>alert('加载失败：'+e.message)); };
+
+      const savedCid = localStorage.getItem(DRIVE_CLIENT_ID_KEY);
+      if(savedCid) document.getElementById('driveClientIdInput').value = savedCid;
+      document.getElementById('btnSaveDriveClient').onclick = ()=>{ const v = document.getElementById('driveClientIdInput').value.trim(); if(!v){ alert('Client ID 不能为空'); return } localStorage.setItem(DRIVE_CLIENT_ID_KEY, v); alert('已保存 Client ID'); document.getElementById('driveModal').style.display='none'; };
+      document.getElementById('btnCloseDriveClient').onclick = ()=>{ document.getElementById('driveModal').style.display='none'; };
+    });
   </script>
 </body>
 </html>
