@@ -2,500 +2,316 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>个性化好习惯积分表 · GitHub持久化增强版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>好习惯积分 App</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:'Helvetica Neue',Arial,sans-serif}
-    body{background:#f8f9fa;color:#333;line-height:1.6;padding:20px;max-width:1200px;margin:0 auto}
-    header{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .title{padding:16px 20px;background:linear-gradient(135deg,#6ecbf5 0%,#059ee3 100%);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);color:#fff}
-    h1{font-size:1.8rem}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
-    .toolbar button,.toolbar label{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    .toolbar input[type=file]{display:none}
-    .toolbar .primary{background:#059ee3;color:#fff}
-    .toolbar .danger{background:#f44336;color:#fff}
-    .toolbar .warning{background:#ff9800;color:#fff}
-    .toolbar .success{background:#4caf50;color:#fff}
+    :root { --primary: #059ee3; --success: #4caf50; --danger: #f44336; --purple: #673ab7; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #f0f2f5; color: #333; padding: 15px; max-width: 1100px; margin: 0 auto; line-height: 1.5; }
+    
+    /* 隐藏管理员元素 */
+    .view-only .admin-only { display: none !important; }
+    .admin-mode-hint { display: none; background: #fff3e0; color: #ef6c00; text-align: center; padding: 8px; font-size: 0.85rem; border-radius: 8px; margin-bottom: 10px; font-weight: bold; }
+    body:not(.view-only) .admin-mode-hint { display: block; }
 
-    .section-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:16px;margin-bottom:16px}
-    .password-form,.add-child-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .password-form input,.add-child-form input{padding:8px 12px;border:1px solid #ddd;border-radius:6px}
+    header { background: linear-gradient(135deg, #6ecbf5 0%, #059ee3 100%); padding: 20px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
+    .cloud-badge { position: absolute; top: 15px; right: 20px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
+    
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    button { padding: 12px 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; }
+    button:active { transform: scale(0.95); opacity: 0.8; }
+    .btn-main { background: var(--primary); color: white; }
+    .btn-sync { background: var(--purple); color: white; }
+    .btn-ghost { border: 1px solid #ddd; color: #666; }
 
-    .status{margin-top:8px;font-size:.9rem;color:#666}
-    .status .ok{color:#4caf50}
-    .status .warn{color:#ff9800}
+    .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 20px; }
+    .child-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+    .tab { padding: 10px 20px; background: #f0f2f5; border-radius: 10px; cursor: pointer; border: 2px solid transparent; white-space: nowrap; }
+    .tab.active { background: #e3f2fd; border-color: var(--primary); color: var(--primary); font-weight: bold; }
 
-    .children-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-    .child-tab{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e3f2fd;border-radius:8px;cursor:pointer}
-    .child-tab.active{background:#2196f3;color:#fff}
-    .edit-btn,.delete-btn{border:none;background:none;font-size:.9rem;opacity:.75;cursor:pointer}
+    .score-banner { display: flex; justify-content: space-around; text-align: center; background: #f8faff; border-radius: 12px; padding: 15px; margin: 15px 0; }
+    .score-val { font-size: 1.8rem; font-weight: bold; display: block; }
+    
+    .table-container { overflow-x: auto; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 550px; }
+    th, td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+    th { background: #fafafa; color: #888; font-size: 0.8rem; }
+    input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
 
-    .quick-view{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
-    .child-card{flex:1;min-width:200px;background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:14px;text-align:center;cursor:pointer}
-    .child-card.active{outline:2px solid #2196f3}
+    /* 弹窗核心样式 */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-size: 1rem; outline: none; transition: 0.2s; }
+    input:focus { border-color: var(--primary); background: #fcfdfe; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+    .modal-btns button { flex: 1; }
 
-    .date-section,.points-summary{display:flex;gap:16px;align-items:center;justify-content:center;background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:12px;margin:12px 0}
-    .points-item{text-align:center}
-    .points-value{font-size:1.6rem;font-weight:700}
-    .positive-points{color:#4caf50}.negative-points{color:#f44336}.total-points{color:#059ee3}
-
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px 12px;text-align:center;border-bottom:1px solid #eee}
-    thead th{background:#f5f5f5;font-weight:600;color:#555}
-    .habit-actions{display:flex;gap:6px;justify-content:center}
-
-    .locked-overlay{position:relative}
-    .locked-overlay::after{content:"🔒 需要家长密码才能修改";position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-weight:700;color:#f44336;border-radius:12px}
-    .view-only .edit-btn,.view-only .delete-btn,.view-only .add-habit-btn,.view-only .habit-edit-btn,.view-only .habit-delete-btn,.view-only #addChildBtn,.view-only #resetBtn{display:none!important}
-
-    .storage-status{text-align:center;margin-top:6px;font-size:.85rem;color:#666}
-
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:100}
-    .modal-content{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:20px;max-width:520px;width:92%}
-    .modal h3{margin-bottom:10px}
-    .modal .list{max-height:60vh;overflow:auto;border:1px solid #eee;border-radius:8px}
-    .modal .list table{width:100%}
-
-    @media print{.toolbar,.password-area,.children-management,.quick-view,.storage-status,.actions{display:none}.section-card{box-shadow:none;border:1px solid #ddd}}
+    .pos-text { color: var(--success); } .neg-text { color: var(--danger); }
+    .hint { font-size: 0.8rem; color: #999; }
   </style>
 </head>
-<body>
+<body class="view-only">
+
+  <div class="admin-mode-hint">✨ 管理员模式已开启（可编辑项目）</div>
+
   <header>
-    <div class="title">
-      <h1>个性化好习惯积分表</h1>
-      <div>激励孩子养成良好习惯的个性化打卡系统 · 含历史归档与导出</div>
-    </div>
-    <div class="toolbar" aria-label="数据工具">
-      <button id="btnExport" class="primary">导出JSON</button>
-      <label for="fileImport" class="success" title="从JSON导入">导入JSON</label>
-      <input id="fileImport" type="file" accept="application/json" />
-      <button id="btnArchive" class="warning" title="将本周快照归档">归档本周</button>
-      <button id="btnHistory">查看历史</button>
-      <button id="btnShare">生成分享链接</button>
-      <button id="btnClear" class="danger">清空数据</button>
-    </div>
+    <h1>好习惯积分表</h1>
+    <div id="cloudIndicator" class="cloud-badge">☁️ 本地模式</div>
   </header>
 
-  <section class="section-card password-area">
-    <h2>家长密码保护</h2>
-    <div class="password-form" style="margin-top:10px">
-      <input type="password" id="parentPassword" placeholder="请输入家长密码" />
-      <button id="unlockBtn" class="success">解锁</button>
-      <button id="lockBtn" style="display:none" class="danger">锁定</button>
-      <button id="changePasswordBtn">修改密码</button>
+  <div class="toolbar">
+    <button onclick="openModal('pwdModal')" id="lockBtn" class="btn-main">🔓 解锁管理员</button>
+    <button onclick="openModal('syncModal')" class="btn-sync">☁️ 云同步</button>
+    <button onclick="exportJSON()" class="btn-ghost">💾 备份</button>
+  </div>
+
+  <section class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <div class="child-tabs" id="childTabs"></div>
+      <button onclick="openModal('addChildModal')" class="admin-only" style="background:#e8f5e9; color:#2e7d32;">+ 添加孩子</button>
     </div>
-    <div class="status" id="passwordStatus">🔒 系统已锁定，可以查看但不能修改</div>
+    
+    <div class="score-banner">
+      <div><span class="hint">总分</span><span id="totalPoints" class="score-val" style="color:var(--primary)">0</span></div>
+      <div><span class="hint">奖励</span><span id="posPoints" class="score-val pos-text">0</span></div>
+      <div><span class="hint">惩罚</span><span id="negPoints" class="score-val neg-text">0</span></div>
+    </div>
   </section>
 
-  <section class="section-card">
-    <h2>儿童管理</h2>
-    <div class="add-child-form" style="margin:10px 0 6px">
-      <input type="text" id="childName" placeholder="输入儿童姓名" />
-      <button id="addChildBtn" class="success">添加儿童</button>
-    </div>
-    <div class="children-list" id="childrenList"></div>
-  </section>
-
-  <div class="quick-view" id="quickView"></div>
-  <div id="scoreboardsContainer"></div>
-
-  <!-- 历史归档弹窗 -->
-  <div class="modal" id="historyModal">
-    <div class="modal-content">
-      <h3>历史归档</h3>
-      <div class="list">
-        <table>
-          <thead><tr><th>周起始日</th><th>儿童</th><th>总分</th><th>详情</th></tr></thead>
-          <tbody id="historyBody"></tbody>
-        </table>
+  <section class="card">
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+      <strong>🌟 习惯打卡</strong>
+      <div class="admin-only" style="display:flex; gap:5px;">
+        <button onclick="applyTemplate()" style="background:#fff3e0; color:#ef6c00; font-size:0.75rem;">📋 模板</button>
+        <button onclick="openModal('addHabitModal')" style="background:var(--primary); color:#fff; font-size:0.75rem;">+ 添加项目</button>
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button id="btnCloseHistory">关闭</button>
-        <button id="btnExportHistory" class="primary">导出归档JSON</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">项目</th><th>分</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th><th class="admin-only">×</th>
+          </tr>
+        </thead>
+        <tbody id="habitBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- --- 弹窗集合 (替代 window.prompt) --- -->
+
+  <!-- 1. 管理员解锁弹窗 -->
+  <div class="modal" id="pwdModal">
+    <div class="modal-content">
+      <h3>家长验证</h3>
+      <input type="password" id="pwdInput" placeholder="请输入家长密码 (默认 123456)" />
+      <div class="modal-btns">
+        <button onclick="closeModal('pwdModal')" class="btn-ghost">取消</button>
+        <button onclick="unlock()" class="btn-main">解锁</button>
       </div>
     </div>
   </div>
 
-  <!-- 修改密码弹窗 -->
-  <div class="modal" id="changePasswordModal">
+  <!-- 2. 添加孩子弹窗 -->
+  <div class="modal" id="addChildModal">
     <div class="modal-content">
-      <h3>修改家长密码</h3>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <input type="password" id="currentPassword" placeholder="当前密码" />
-        <input type="password" id="newPassword" placeholder="新密码（≥4位）" />
-        <input type="password" id="confirmPassword" placeholder="确认新密码" />
-      </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button id="savePasswordBtn" class="success">保存</button>
-        <button id="cancelPasswordBtn">取消</button>
+      <h3>添加孩子</h3>
+      <input type="text" id="newChildName" placeholder="输入孩子姓名" />
+      <div class="modal-btns">
+        <button onclick="closeModal('addChildModal')" class="btn-ghost">取消</button>
+        <button onclick="confirmAddChild()" class="btn-main">确认添加</button>
       </div>
     </div>
   </div>
 
-  <div class="storage-status" id="storageStatus">✅ 数据自动保存到浏览器（GitHub Pages 同样生效）</div>
+  <!-- 3. 添加习惯弹窗 -->
+  <div class="modal" id="addHabitModal">
+    <div class="modal-content">
+      <h3>添加新项目</h3>
+      <input type="text" id="newHabitName" placeholder="例如：每天阅读30分钟" />
+      <input type="number" id="newHabitPts" placeholder="分值 (奖励填正数，惩罚填负数)" />
+      <div class="modal-btns">
+        <button onclick="closeModal('addHabitModal')" class="btn-ghost">取消</button>
+        <button onclick="confirmAddHabit()" class="btn-main">确认保存</button>
+      </div>
+    </div>
+  </div>
 
-  <div class="actions" style="display:flex;gap:12px;justify-content:center;margin:16px 0">
-    <button id="resetBtn" class="warning">重置本周积分</button>
-    <button id="printBtn" class="success">打印表格</button>
+  <!-- 4. 云同步设置 -->
+  <div class="modal" id="syncModal">
+    <div class="modal-content">
+      <h3>☁️ 云端同步设置</h3>
+      <button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="background:#24292e; color:white; width:100%; margin:10px 0;">1. 获取 GitHub Token</button>
+      <input type="text" id="ghTokenInput" placeholder="2. 在此粘贴 ghp_ 开头的代码" />
+      <button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%">3. 识别并连接</button>
+      <button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px;" class="btn-ghost">返回</button>
+    </div>
   </div>
 
   <script>
-  // ====== 存储命名空间与工具 ======
-  const NS = 'habit_v2';
-  const KEY = (k) => `${NS}:${k}`;
+    // --- 数据与逻辑 ---
+    const TEMPLATE = [
+        { name: '📖 阅读30分钟', pts: 3 }, { name: '✍️ 专注作业', pts: 3 },
+        { name: '🏠 整理房间', pts: 2 }, { name: '🛌 准时睡觉', pts: 2 },
+        { name: '📺 电子产品超时', pts: -5 }, { name: '😤 发脾气/顶嘴', pts: -5 }
+    ];
 
-  function safeGet(k, def){
-    try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def }catch(e){ console.warn('parse fail',k,e); return def }
-  }
-  function safeSet(k, v){
-    try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){ alert('本地存储空间不足或被禁用'); console.error(e) }
-  }
-  function download(filename, text){
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
-    a.download = filename; a.click(); URL.revokeObjectURL(a.href);
-  }
-  function isoWeekStart(d=new Date()){
-    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const day = date.getUTCDay() || 7; // 周一为1
-    if(day !== 1) date.setUTCDate(date.getUTCDate() - (day - 1));
-    return date.toISOString().slice(0,10);
-  }
+    let state = {
+      children: [{ id: '1', name: '小明', habits: [...TEMPLATE] }],
+      checks: {}, pwd: '123456'
+    };
 
-  // ====== 初始数据 ======
-  let parentPassword = localStorage.getItem(KEY('parentPassword')) || '123456';
-  let isUnlocked = false;
-  let children = safeGet(KEY('children'), []);
-  let archives = safeGet(KEY('archives'), []); // [{weekStart:'YYYY-MM-DD', snapshot:{children:[{id,name,total,positive,negative}], raw:{children,checkbox}}}]
+    let activeId = '1';
+    let isUnlocked = false;
+    const CLOUD = { token: localStorage.getItem('gh_token_v3'), gistId: localStorage.getItem('gh_gist_id_v3'), file: 'habit_data_v3.json' };
 
-  const defaultPositive = [
-    { name: '按时完成作业', points: 3 },
-    { name: '整理自己的房间', points: 2 },
-    { name: '主动帮助做家务', points: 4 },
-    { name: '阅读30分钟', points: 3 },
-    { name: '按时睡觉', points: 2 },
-  ];
-  const defaultNegative = [
-    { name: '乱发脾气', points: -5 },
-    { name: '长时间玩电子设备', points: -3 },
-    { name: '不按时吃饭', points: -2 },
-    { name: '与兄弟姐妹争吵', points: -4 },
-  ];
+    window.onload = async () => {
+      const saved = localStorage.getItem('habit_state_v3');
+      if (saved) state = JSON.parse(saved);
+      if (CLOUD.token && CLOUD.gistId) await pull();
+      render();
+    };
 
-  function saveAll(){
-    safeSet(KEY('children'), children);
-    localStorage.setItem(KEY('parentPassword'), parentPassword);
-    safeSet(KEY('archives'), archives);
-    document.getElementById('storageStatus').textContent = '✅ 数据已保存';
-  }
+    function render() {
+      const tabs = document.getElementById('childTabs');
+      tabs.innerHTML = state.children.map(c => `<div class="tab ${c.id === activeId ? 'active' : ''}" onclick="switchChild('${c.id}')">${c.name}</div>`).join('');
 
-  // 复选框状态独立存储，按 childId 分桶
-  function loadChecks(childId){
-    const m = safeGet(KEY('checks:' + childId), {});
-    Object.keys(m).forEach(id => { const el = document.getElementById(id); if(el) el.checked = !!m[id]; });
-    updateTotals(childId);
-  }
-  function saveCheck(checkbox){
-    const childId = checkbox.getAttribute('data-child');
-    const map = safeGet(KEY('checks:' + childId), {});
-    map[checkbox.id] = checkbox.checked; safeSet(KEY('checks:' + childId), map);
-  }
-
-  // ====== 密码与锁定 ======
-  function updateLock(){
-    const status = document.getElementById('passwordStatus');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const lockBtn = document.getElementById('lockBtn');
-    if(isUnlocked){
-      status.textContent = '🔓 系统已解锁，可以修改内容';
-      unlockBtn.style.display = 'none'; lockBtn.style.display = 'inline-block';
-      document.body.classList.remove('view-only');
-    }else{
-      status.textContent = '🔒 系统已锁定，可以查看但不能修改';
-      unlockBtn.style.display = 'inline-block'; lockBtn.style.display = 'none';
-      document.body.classList.add('view-only');
+      const child = state.children.find(c => c.id === activeId) || state.children[0];
+      const body = document.getElementById('habitBody');
+      body.innerHTML = child.habits.map((h, idx) => `
+        <tr>
+          <td style="text-align:left; font-size:0.9rem;">${h.name}</td>
+          <td class="${h.pts > 0 ? 'pos-text' : 'neg-text'}"><b>${h.pts > 0 ? '+' : ''}${h.pts}</b></td>
+          ${[1,2,3,4,5,6,0].map(d => `<td><input type="checkbox" ${getCheck(activeId, idx, d) ? 'checked' : ''} onchange="toggle('${activeId}', ${idx}, ${d})"></td>`).join('')}
+          <td class="admin-only"><button onclick="delHabit(${idx})" style="color:var(--danger); background:none; box-shadow:none; padding:0; font-size:1.2rem;">×</button></td>
+        </tr>`).join('');
+      calc(); save();
     }
-  }
-  function needAuth(){ if(!isUnlocked){ alert('需要家长密码'); return true } return false }
 
-  document.getElementById('unlockBtn').onclick = () => {
-    const pwd = document.getElementById('parentPassword').value;
-    if(pwd === parentPassword){ isUnlocked = true; updateLock(); document.getElementById('parentPassword').value=''; }
-    else{ alert('密码错误'); }
-  };
-  document.getElementById('lockBtn').onclick = () => { isUnlocked = false; updateLock(); };
+    function switchChild(id) { activeId = id; render(); }
+    function getCheck(cid, idx, day) { return (state.checks[cid] || {})[`${idx}-${day}`]; }
+    function toggle(cid, idx, day) {
+      if (!state.checks[cid]) state.checks[cid] = {};
+      state.checks[cid][`${idx}-${day}`] = !state.checks[cid][`${idx}-${day}`];
+      render(); syncPush();
+    }
 
-  document.getElementById('changePasswordBtn').onclick = () => {
-    if(needAuth()) return; document.getElementById('changePasswordModal').style.display='flex';
-  };
-  document.getElementById('savePasswordBtn').onclick = () => {
-    const cur = document.getElementById('currentPassword').value;
-    const np = document.getElementById('newPassword').value;
-    const cp = document.getElementById('confirmPassword').value;
-    if(cur !== parentPassword){ alert('当前密码错误'); return }
-    if(np.length < 4){ alert('新密码长度不能少于4位'); return }
-    if(np !== cp){ alert('两次输入不一致'); return }
-    parentPassword = np; saveAll();
-    document.getElementById('changePasswordModal').style.display='none';
-    document.getElementById('currentPassword').value='';
-    document.getElementById('newPassword').value='';
-    document.getElementById('confirmPassword').value='';
-  };
-  document.getElementById('cancelPasswordBtn').onclick = () => {
-    document.getElementById('changePasswordModal').style.display='none';
-  };
+    function calc() {
+      const child = state.children.find(c => c.id === activeId);
+      let p = 0, n = 0;
+      child.habits.forEach((h, i) => { [1,2,3,4,5,6,0].forEach(d => { if (getCheck(activeId, i, d)) { if (h.pts > 0) p += h.pts; else n += h.pts; } }); });
+      document.getElementById('posPoints').textContent = p;
+      document.getElementById('negPoints').textContent = n;
+      document.getElementById('totalPoints').textContent = p + n;
+    }
 
-  // ====== 儿童管理与渲染 ======
-  document.getElementById('addChildBtn').onclick = () => {
-    if(needAuth()) return; const name = document.getElementById('childName').value.trim();
-    if(!name){ alert('请输入儿童姓名'); return }
-    const child = { id: String(Date.now()), name, habits: { positive: JSON.parse(JSON.stringify(defaultPositive)), negative: JSON.parse(JSON.stringify(defaultNegative)) } };
-    children.push(child); saveAll();
-    renderAll(); switchTo(child.id); document.getElementById('childName').value='';
-  };
+    function unlock() {
+      if (document.getElementById('pwdInput').value === state.pwd) {
+        isUnlocked = true; document.body.classList.remove('view-only');
+        document.getElementById('lockBtn').innerHTML = '🔒 已解锁';
+        closeModal('pwdModal'); render();
+      } else { alert('密码错误'); }
+    }
 
-  function renderTabs(){
-    const el = document.getElementById('childrenList'); el.innerHTML='';
-    children.forEach(c => {
-      const tab = document.createElement('div'); tab.className='child-tab'; tab.dataset.childId=c.id;
-      tab.innerHTML = `<span class="child-name">${c.name}</span>
-        <button class="edit-btn" title="编辑">✏️</button>
-        <button class="delete-btn" title="删除">🗑️</button>`;
-      tab.onclick = () => switchTo(c.id);
-      tab.querySelector('.edit-btn').onclick = (e)=>{ e.stopPropagation(); if(needAuth()) return; const name = prompt('修改姓名', c.name); if(name){ c.name = name.trim(); saveAll(); renderAll(); switchTo(c.id); } };
-      tab.querySelector('.delete-btn').onclick = (e)=>{ e.stopPropagation(); if(needAuth()) return; if(children.length<=1){ alert('至少保留一名儿童'); return } if(confirm('确定删除?')){ children = children.filter(x=>x.id!==c.id); saveAll(); localStorage.removeItem(KEY('checks:'+c.id)); renderAll(); if(children[0]) switchTo(children[0].id); } };
-      el.appendChild(tab);
-    });
-  }
-
-  function renderQuick(){
-    const q = document.getElementById('quickView'); q.innerHTML='';
-    children.forEach(c => {
-      const total = calcChildTotal(c.id);
-      const card = document.createElement('div'); card.className='child-card'; card.dataset.childId=c.id;
-      card.innerHTML = `<h3>${c.name}</h3><div class="child-points" style="color:${total>=0?'#4caf50':'#f44336'}">${total>=0?'+':''}${total}分</div><div class="child-habits">${c.habits.positive.length}个好习惯 | ${c.habits.negative.length}个坏习惯</div>`;
-      card.onclick = ()=>switchTo(c.id);
-      q.appendChild(card);
-    });
-  }
-
-  function renderScoreboard(child){
-    const wrap = document.getElementById('scoreboardsContainer');
-    const old = document.getElementById('scoreboard-'+child.id); if(old) old.remove();
-    const div = document.createElement('div'); div.className='child-scoreboard'; div.id='scoreboard-'+child.id;
-    div.innerHTML = `
-      <div class="date-section">
-        <label for="recordDate-${child.id}">记录日期：</label>
-        <input type="date" id="recordDate-${child.id}">
-      </div>
-      <div class="points-summary">
-        <div class="points-item"><div>本周总分</div><div class="points-value total-points" id="totalPoints-${child.id}">0</div></div>
-        <div class="points-item"><div>加分项</div><div class="points-value positive-points" id="positivePoints-${child.id}">0</div></div>
-        <div class="points-item"><div>减分项</div><div class="points-value negative-points" id="negativePoints-${child.id}">0</div></div>
-      </div>
-      <div class="section-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong>一、加分奖励 🌟</strong><button class="add-habit-btn" data-type="positive" data-child="${child.id}">+ 添加好习惯</button></div>
-        <table><thead><tr><th>好习惯</th><th>积分</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th><th>操作</th></tr></thead><tbody id="positiveHabits-${child.id}"></tbody></table>
-      </div>
-      <div class="section-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong>二、减分惩罚 😠</strong><button class="add-habit-btn" data-type="negative" data-child="${child.id}">+ 添加坏习惯</button></div>
-        <table><thead><tr><th>不良行为</th><th>积分</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th><th>操作</th></tr></thead><tbody id="negativeHabits-${child.id}"></tbody></table>
-      </div>`;
-    wrap.appendChild(div);
-
-    document.getElementById(`recordDate-${child.id}`).valueAsDate = new Date();
-    renderHabits(child.id,'positive',child.habits.positive);
-    renderHabits(child.id,'negative',child.habits.negative);
-
-    div.querySelectorAll('.add-habit-btn').forEach(b=> b.onclick = () => { if(needAuth()) return; const type=b.dataset.type; const c = children.find(x=>x.id===child.id); const defName = type==='positive'?'新好习惯':'新坏习惯'; const defPts = type==='positive'?3:-3; c.habits[type].push({name:defName,points:defPts}); saveAll(); renderScoreboard(c); renderQuick(); });
-
-    loadChecks(child.id);
-  }
-
-  function renderHabits(childId,type,arr){
-    const tb = document.getElementById(`${type}Habits-${childId}`); tb.innerHTML='';
-    arr.forEach((h,idx)=>{
-      const pointsDisp = type==='positive'?`+${h.points}`:h.points;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="habit-name">${h.name}</td>
-        <td class="points-cell ${type==='positive'?'positive-points-cell':'negative-points-cell'}">${pointsDisp}</td>
-        ${['mon','tue','wed','thu','fri','sat','sun'].map(d=>`<td class="check-cell"><input type="checkbox" data-points="${h.points}" data-day="${d}" data-child="${childId}"></td>`).join('')}
-        <td class="habit-actions"><button class="habit-edit-btn" title="编辑">✏️</button><button class="habit-delete-btn" title="删除">🗑️</button></td>`;
-      tb.appendChild(tr);
-
-      tr.querySelectorAll('input[type="checkbox"]').forEach((cb,i)=>{
-        const day = cb.getAttribute('data-day');
-        const name = tr.querySelector('.habit-name').textContent;
-        const id = `cb_${childId}_${type}_${idx}_${day}`; // 稳定ID，避免改名导致失联
-        cb.id = id;
-        cb.onchange = () => { updateTotals(childId); saveCheck(cb); renderQuick(); };
-      });
-
-      tr.querySelector('.habit-edit-btn').onclick = () => {
-        if(needAuth()) return;
-        const newName = prompt('习惯名称', h.name);
-        const newPts = Number(prompt('积分(正负数)', h.points));
-        if(!newName || Number.isNaN(newPts)) return;
-        h.name = newName.trim(); h.points = newPts; saveAll(); renderHabits(childId,type,arr); updateTotals(childId); renderQuick();
-      };
-      tr.querySelector('.habit-delete-btn').onclick = () => {
-        if(needAuth()) return;
-        if(arr.length<=1){ alert('至少保留一个项目'); return }
-        if(confirm('确定删除该项目?')){ arr.splice(idx,1); saveAll(); renderHabits(childId,type,arr); updateTotals(childId); renderQuick(); }
-      };
-    });
-  }
-
-  function switchTo(childId){
-    document.querySelectorAll('.child-card').forEach(c=>c.classList.remove('active'));
-    const activeCard = document.querySelector(`.child-card[data-child-id="${childId}"]`); if(activeCard) activeCard.classList.add('active');
-    document.querySelectorAll('.child-tab').forEach(t=>t.classList.remove('active'));
-    const activeTab = document.querySelector(`.child-tab[data-child-id="${childId}"]`); if(activeTab) activeTab.classList.add('active');
-    document.querySelectorAll('.child-scoreboard').forEach(s=>s.style.display='none');
-    const sb = document.getElementById('scoreboard-'+childId); if(sb) sb.style.display='block';
-  }
-
-  function calcChildTotal(childId){
-    let pos=0, neg=0;
-    document.querySelectorAll(`#positiveHabits-${childId} input[type="checkbox"]:checked`).forEach(cb=> pos += parseInt(cb.getAttribute('data-points')) );
-    document.querySelectorAll(`#negativeHabits-${childId} input[type="checkbox"]:checked`).forEach(cb=> neg += parseInt(cb.getAttribute('data-points')) );
-    return pos + neg;
-  }
-  function updateTotals(childId){
-    let pos=0, neg=0;
-    document.querySelectorAll(`#positiveHabits-${childId} input[type="checkbox"]:checked`).forEach(cb=> pos += parseInt(cb.getAttribute('data-points')) );
-    document.querySelectorAll(`#negativeHabits-${childId} input[type="checkbox"]:checked`).forEach(cb=> neg += parseInt(cb.getAttribute('data-points')) );
-    document.getElementById(`positivePoints-${childId}`).textContent=pos;
-    document.getElementById(`negativePoints-${childId}`).textContent=neg;
-    document.getElementById(`totalPoints-${childId}`).textContent=pos+neg;
-  }
-
-  function renderAll(){
-    document.getElementById('scoreboardsContainer').innerHTML='';
-    renderTabs(); renderQuick(); children.forEach(renderScoreboard);
-  }
-
-  // ====== 导出 / 导入 / 归档 / 分享 ======
-  document.getElementById('btnExport').onclick = () => {
-    // 整体快照
-    const checks = {};
-    children.forEach(c => { checks[c.id] = safeGet(KEY('checks:'+c.id), {}) });
-    const snapshot = { version:2, children, archives, checks };
-    download(`habit-snapshot-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(snapshot, null, 2));
-  };
-
-  document.getElementById('fileImport').onchange = (e) => {
-    const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader(); r.onload = () => {
-      try{
-        const data = JSON.parse(r.result);
-        if(!data || !data.children) throw new Error('格式不正确');
-        children = data.children; archives = data.archives || [];
-        // 覆盖 checks
-        if(data.checks){ Object.keys(data.checks).forEach(id => safeSet(KEY('checks:'+id), data.checks[id])); }
-        saveAll(); renderAll(); if(children[0]) switchTo(children[0].id);
-        alert('导入完成');
-      }catch(err){ alert('导入失败：'+ err.message); }
-    }; r.readAsText(f);
-    e.target.value = '';
-  };
-
-  document.getElementById('btnArchive').onclick = () => {
-    const week = isoWeekStart();
-    const rows = children.map(c => ({ id:c.id, name:c.name, total: calcChildTotal(c.id), positive: parseInt(document.getElementById(`positivePoints-${c.id}`).textContent)||0, negative: parseInt(document.getElementById(`negativePoints-${c.id}`).textContent)||0 }));
-    const checks = {}; children.forEach(c => checks[c.id] = safeGet(KEY('checks:'+c.id), {}));
-    archives.push({ weekStart: week, snapshot: { children: rows, raw: { children: JSON.parse(JSON.stringify(children)), checks } } });
-    saveAll(); alert('已归档本周快照：' + week);
-  };
-
-  document.getElementById('btnHistory').onclick = () => {
-    const body = document.getElementById('historyBody'); body.innerHTML='';
-    archives.slice().reverse().forEach(a => {
-      a.snapshot.children.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${a.weekStart}</td><td>${row.name}</td><td>${row.total}</td><td><button data-week="${a.weekStart}" data-id="${row.id}">恢复到当前</button></td>`;
-        body.appendChild(tr);
-      });
-    });
-    document.querySelectorAll('#historyBody button').forEach(btn => btn.onclick = () => {
-      if(needAuth()) return;
-      const wk = btn.getAttribute('data-week');
-      const rec = archives.find(x=>x.weekStart===wk);
-      if(!rec) return;
-      if(!confirm('确认将该周快照恢复为当前数据？')) return;
-      // 恢复 raw
-      children = JSON.parse(JSON.stringify(rec.snapshot.raw.children));
-      const checks = rec.snapshot.raw.checks || {};
-      Object.keys(checks).forEach(id => safeSet(KEY('checks:'+id), checks[id]));
-      saveAll(); renderAll(); if(children[0]) switchTo(children[0].id);
-    });
-    document.getElementById('historyModal').style.display='flex';
-  };
-  document.getElementById('btnCloseHistory').onclick = () => { document.getElementById('historyModal').style.display='none'; };
-  document.getElementById('btnExportHistory').onclick = () => { download('habit-archives.json', JSON.stringify(archives, null, 2)); };
-
-  document.getElementById('btnShare').onclick = () => {
-    // 生成可分享链接：将精简快照放到 URL hash
-    const checks = {}; children.forEach(c => checks[c.id] = safeGet(KEY('checks:'+c.id), {}));
-    const payload = { v:2, children, checks };
-    const raw = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
-    const url = location.origin + location.pathname + '#data=' + raw;
-    navigator.clipboard?.writeText(url);
-    alert('已生成并复制链接，粘贴到新设备浏览器即可加载');
-  };
-  // 如存在 #data，提示导入
-  (function tryLoadFromHash(){
-    const h = location.hash; if(!h.startsWith('#data=')) return;
-    try{
-      const raw = decodeURIComponent(h.slice(6));
-      const json = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(raw)))));
-      if(json && json.children){
-        if(confirm('检测到分享数据，是否导入当前页面？')){
-          children = json.children; Object.keys(json.checks||{}).forEach(id => safeSet(KEY('checks:'+id), json.checks[id]));
-          saveAll(); renderAll(); if(children[0]) switchTo(children[0].id);
-          location.hash = '';
-        }
+    // --- 新的添加逻辑 (自定义弹窗回调) ---
+    function confirmAddChild() {
+      const name = document.getElementById('newChildName').value.trim();
+      if (name) {
+        const id = Date.now().toString();
+        state.children.push({ id, name, habits: [...TEMPLATE] });
+        activeId = id;
+        document.getElementById('newChildName').value = '';
+        closeModal('addChildModal');
+        render(); syncPush();
       }
-    }catch(e){ console.warn('hash 导入失败', e); }
-  })();
+    }
 
-  document.getElementById('btnClear').onclick = () => {
-    if(needAuth()) return;
-    if(!confirm('此操作会清空所有数据，且不可恢复。是否继续？')) return;
-    const keys = Object.keys(localStorage).filter(k=>k.startsWith(NS+':'));
-    keys.forEach(k=>localStorage.removeItem(k));
-    parentPassword = '123456'; children = []; archives = [];
-    // 默认添加一名儿童
-    const child = { id: String(Date.now()), name: '小明', habits: { positive: JSON.parse(JSON.stringify(defaultPositive)), negative: JSON.parse(JSON.stringify(defaultNegative)) } };
-    children.push(child); saveAll(); renderAll(); switchTo(child.id);
-  };
+    function confirmAddHabit() {
+      const name = document.getElementById('newHabitName').value.trim();
+      const pts = parseInt(document.getElementById('newHabitPts').value);
+      if (name && !isNaN(pts)) {
+        const child = state.children.find(c => c.id === activeId);
+        child.habits.push({ name, pts });
+        document.getElementById('newHabitName').value = '';
+        document.getElementById('newHabitPts').value = '';
+        closeModal('addHabitModal');
+        render(); syncPush();
+      }
+    }
 
-  // ====== 重置与打印 ======
-  document.getElementById('resetBtn').onclick = () => {
-    if(needAuth()) return;
-    const active = document.querySelector('.child-tab.active'); if(!active){ alert('请选择儿童'); return }
-    const childId = active.dataset.childId;
-    if(!confirm('确定重置本周该儿童的所有勾选记录？')) return;
-    document.querySelectorAll(`#scoreboard-${childId} input[type="checkbox"]`).forEach(cb=>{ cb.checked=false; saveCheck(cb); });
-    updateTotals(childId); renderQuick();
-  };
-  document.getElementById('printBtn').onclick = () => window.print();
+    function delHabit(idx) {
+      if(confirm('确定删除该项？')) {
+        state.children.find(c => c.id === activeId).habits.splice(idx, 1);
+        state.checks[activeId] = {}; // 重置防止索引位移
+        render(); syncPush();
+      }
+    }
 
-  // ====== 初始化 ======
-  if(children.length === 0){
-    children.push({ id:String(Date.now()), name:'小明', habits:{ positive: JSON.parse(JSON.stringify(defaultPositive)), negative: JSON.parse(JSON.stringify(defaultNegative)) } });
-  }
-  renderAll(); switchTo(children[0].id); updateLock();
+    function applyTemplate() {
+        if(confirm('载入模板会重置当前习惯列表，确定吗？')) {
+            state.children.find(c => c.id === activeId).habits = [...TEMPLATE];
+            state.checks[activeId] = {}; render();
+        }
+    }
 
-  // ====== PWA 缓存（可选）：离线可用 ======
-  if('serviceWorker' in navigator){
-    try{ navigator.serviceWorker.register(URL.createObjectURL(new Blob([`
-      self.addEventListener('install', e=>{ e.waitUntil(caches.open('habit-cache-v1').then(c=>c.addAll(['./']))); });
-      self.addEventListener('fetch', e=>{ e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))); });
-    `],{type:'text/javascript'}))); }catch(e){ console.warn('SW 注册失败', e); }
-  }
+    // --- 云同步 ---
+    async function identifyCloud() {
+      const t = document.getElementById('ghTokenInput').value.trim();
+      if (!t.startsWith('ghp_')) return alert('Token 格式错误');
+      try {
+        const res = await fetch('https://api.github.com/gists', { headers: { 'Authorization': `token ${t}` } });
+        const gists = await res.json();
+        const f = gists.find(g => g.files[CLOUD.file]);
+        CLOUD.token = t; localStorage.setItem('gh_token_v3', t);
+        if (f) {
+          CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v3', f.id);
+          if (confirm('发现云端备份，是否载入？')) await pull();
+        } else { await push(); }
+        updateUI(true); closeModal('syncModal');
+      } catch (e) { alert('同步失败'); }
+    }
+
+    async function push() {
+      if (!CLOUD.token) return;
+      const url = CLOUD.gistId ? `https://api.github.com/gists/${CLOUD.gistId}` : 'https://api.github.com/gists';
+      const res = await fetch(url, {
+        method: CLOUD.gistId ? 'PATCH' : 'POST',
+        headers: { 'Authorization': `token ${CLOUD.token}` },
+        body: JSON.stringify({ public: false, files: { [CLOUD.file]: { content: JSON.stringify(state) } } })
+      });
+      const d = await res.json();
+      if (d.id) { CLOUD.gistId = d.id; localStorage.setItem('gh_gist_id_v3', d.id); }
+    }
+
+    async function pull() {
+      const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`, { headers: { 'Authorization': `token ${CLOUD.token}` } });
+      const g = await res.json();
+      const s = JSON.parse(g.files[CLOUD.file].content);
+      if (s) { state = s; render(); updateUI(true); }
+    }
+
+    function syncPush() {
+      if (!CLOUD.token || !CLOUD.gistId) return;
+      document.getElementById('cloudIndicator').textContent = '☁️ 同步中...';
+      push().then(() => { document.getElementById('cloudIndicator').textContent = '☁️ 已云同步'; });
+    }
+
+    // --- 通用 ---
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function save() { localStorage.setItem('habit_state_v3', JSON.stringify(state)); }
+    function updateUI(on) { 
+      const e = document.getElementById('cloudIndicator');
+      e.textContent = on ? '☁️ 云同步开启' : '☁️ 本地模式';
+      e.style.background = on ? 'rgba(76, 175, 80, 0.4)' : 'rgba(255,255,255,0.2)';
+    }
+    function exportJSON() {
+      const b = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+      a.download = `习惯积分备份.json`; a.click();
+    }
   </script>
 </body>
 </html>
