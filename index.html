@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>好习惯积分 App</title>
+  <style>
+    :root { --primary: #059ee3; --success: #4caf50; --danger: #f44336; --purple: #673ab7; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #f0f2f5; color: #333; padding: 15px; max-width: 1100px; margin: 0 auto; line-height: 1.5; }
+    
+    /* 隐藏管理员元素 */
+    .view-only .admin-only { display: none !important; }
+    .admin-mode-hint { display: none; background: #fff3e0; color: #ef6c00; text-align: center; padding: 8px; font-size: 0.85rem; border-radius: 8px; margin-bottom: 10px; font-weight: bold; }
+    body:not(.view-only) .admin-mode-hint { display: block; }
+
+    header { background: linear-gradient(135deg, #6ecbf5 0%, #059ee3 100%); padding: 20px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
+    .cloud-badge { position: absolute; top: 15px; right: 20px; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
+    
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    button { padding: 12px 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; }
+    button:active { transform: scale(0.95); opacity: 0.8; }
+    .btn-main { background: var(--primary); color: white; }
+    .btn-sync { background: var(--purple); color: white; }
+    .btn-ghost { border: 1px solid #ddd; color: #666; }
+
+    .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 20px; }
+    .child-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+    .tab { padding: 10px 20px; background: #f0f2f5; border-radius: 10px; cursor: pointer; border: 2px solid transparent; white-space: nowrap; }
+    .tab.active { background: #e3f2fd; border-color: var(--primary); color: var(--primary); font-weight: bold; }
+
+    .score-banner { display: flex; justify-content: space-around; text-align: center; background: #f8faff; border-radius: 12px; padding: 15px; margin: 15px 0; }
+    .score-val { font-size: 1.8rem; font-weight: bold; display: block; }
+    
+    .table-container { overflow-x: auto; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 550px; }
+    th, td { padding: 14px 10px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+    th { background: #fafafa; color: #888; font-size: 0.8rem; }
+    input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+
+    /* 弹窗核心样式 */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-size: 1rem; outline: none; transition: 0.2s; }
+    input:focus { border-color: var(--primary); background: #fcfdfe; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 15px; }
+    .modal-btns button { flex: 1; }
+
+    .pos-text { color: var(--success); } .neg-text { color: var(--danger); }
+    .hint { font-size: 0.8rem; color: #999; }
+  </style>
+</head>
+<body class="view-only">
+
+  <div class="admin-mode-hint">✨ 管理员模式已开启（可编辑项目）</div>
+
+  <header>
+    <h1>好习惯积分表</h1>
+    <div id="cloudIndicator" class="cloud-badge">☁️ 本地模式</div>
+  </header>
+
+  <div class="toolbar">
+    <button onclick="openModal('pwdModal')" id="lockBtn" class="btn-main">🔓 解锁管理员</button>
+    <button onclick="openModal('syncModal')" class="btn-sync">☁️ 云同步</button>
+    <button onclick="exportJSON()" class="btn-ghost">💾 备份</button>
+  </div>
+
+  <section class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <div class="child-tabs" id="childTabs"></div>
+      <button onclick="openModal('addChildModal')" class="admin-only" style="background:#e8f5e9; color:#2e7d32;">+ 添加孩子</button>
+    </div>
+    
+    <div class="score-banner">
+      <div><span class="hint">总分</span><span id="totalPoints" class="score-val" style="color:var(--primary)">0</span></div>
+      <div><span class="hint">奖励</span><span id="posPoints" class="score-val pos-text">0</span></div>
+      <div><span class="hint">惩罚</span><span id="negPoints" class="score-val neg-text">0</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+      <strong>🌟 习惯打卡</strong>
+      <div class="admin-only" style="display:flex; gap:5px;">
+        <button onclick="applyTemplate()" style="background:#fff3e0; color:#ef6c00; font-size:0.75rem;">📋 模板</button>
+        <button onclick="openModal('addHabitModal')" style="background:var(--primary); color:#fff; font-size:0.75rem;">+ 添加项目</button>
+      </div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">项目</th><th>分</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th><th class="admin-only">×</th>
+          </tr>
+        </thead>
+        <tbody id="habitBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- --- 弹窗集合 (替代 window.prompt) --- -->
+
+  <!-- 1. 管理员解锁弹窗 -->
+  <div class="modal" id="pwdModal">
+    <div class="modal-content">
+      <h3>家长验证</h3>
+      <input type="password" id="pwdInput" placeholder="请输入家长密码 (默认 123456)" />
+      <div class="modal-btns">
+        <button onclick="closeModal('pwdModal')" class="btn-ghost">取消</button>
+        <button onclick="unlock()" class="btn-main">解锁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 添加孩子弹窗 -->
+  <div class="modal" id="addChildModal">
+    <div class="modal-content">
+      <h3>添加孩子</h3>
+      <input type="text" id="newChildName" placeholder="输入孩子姓名" />
+      <div class="modal-btns">
+        <button onclick="closeModal('addChildModal')" class="btn-ghost">取消</button>
+        <button onclick="confirmAddChild()" class="btn-main">确认添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 添加习惯弹窗 -->
+  <div class="modal" id="addHabitModal">
+    <div class="modal-content">
+      <h3>添加新项目</h3>
+      <input type="text" id="newHabitName" placeholder="例如：每天阅读30分钟" />
+      <input type="number" id="newHabitPts" placeholder="分值 (奖励填正数，惩罚填负数)" />
+      <div class="modal-btns">
+        <button onclick="closeModal('addHabitModal')" class="btn-ghost">取消</button>
+        <button onclick="confirmAddHabit()" class="btn-main">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 云同步设置 -->
+  <div class="modal" id="syncModal">
+    <div class="modal-content">
+      <h3>☁️ 云端同步设置</h3>
+      <button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="background:#24292e; color:white; width:100%; margin:10px 0;">1. 获取 GitHub Token</button>
+      <input type="text" id="ghTokenInput" placeholder="2. 在此粘贴 ghp_ 开头的代码" />
+      <button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%">3. 识别并连接</button>
+      <button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px;" class="btn-ghost">返回</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 数据与逻辑 ---
+    const TEMPLATE = [
+        { name: '📖 阅读30分钟', pts: 3 }, { name: '✍️ 专注作业', pts: 3 },
+        { name: '🏠 整理房间', pts: 2 }, { name: '🛌 准时睡觉', pts: 2 },
+        { name: '📺 电子产品超时', pts: -5 }, { name: '😤 发脾气/顶嘴', pts: -5 }
+    ];
+
+    let state = {
+      children: [{ id: '1', name: '小明', habits: [...TEMPLATE] }],
+      checks: {}, pwd: '123456'
+    };
+
+    let activeId = '1';
+    let isUnlocked = false;
+    const CLOUD = { token: localStorage.getItem('gh_token_v3'), gistId: localStorage.getItem('gh_gist_id_v3'), file: 'habit_data_v3.json' };
+
+    window.onload = async () => {
+      const saved = localStorage.getItem('habit_state_v3');
+      if (saved) state = JSON.parse(saved);
+      if (CLOUD.token && CLOUD.gistId) await pull();
+      render();
+    };
+
+    function render() {
+      const tabs = document.getElementById('childTabs');
+      tabs.innerHTML = state.children.map(c => `<div class="tab ${c.id === activeId ? 'active' : ''}" onclick="switchChild('${c.id}')">${c.name}</div>`).join('');
+
+      const child = state.children.find(c => c.id === activeId) || state.children[0];
+      const body = document.getElementById('habitBody');
+      body.innerHTML = child.habits.map((h, idx) => `
+        <tr>
+          <td style="text-align:left; font-size:0.9rem;">${h.name}</td>
+          <td class="${h.pts > 0 ? 'pos-text' : 'neg-text'}"><b>${h.pts > 0 ? '+' : ''}${h.pts}</b></td>
+          ${[1,2,3,4,5,6,0].map(d => `<td><input type="checkbox" ${getCheck(activeId, idx, d) ? 'checked' : ''} onchange="toggle('${activeId}', ${idx}, ${d})"></td>`).join('')}
+          <td class="admin-only"><button onclick="delHabit(${idx})" style="color:var(--danger); background:none; box-shadow:none; padding:0; font-size:1.2rem;">×</button></td>
+        </tr>`).join('');
+      calc(); save();
+    }
+
+    function switchChild(id) { activeId = id; render(); }
+    function getCheck(cid, idx, day) { return (state.checks[cid] || {})[`${idx}-${day}`]; }
+    function toggle(cid, idx, day) {
+      if (!state.checks[cid]) state.checks[cid] = {};
+      state.checks[cid][`${idx}-${day}`] = !state.checks[cid][`${idx}-${day}`];
+      render(); syncPush();
+    }
+
+    function calc() {
+      const child = state.children.find(c => c.id === activeId);
+      let p = 0, n = 0;
+      child.habits.forEach((h, i) => { [1,2,3,4,5,6,0].forEach(d => { if (getCheck(activeId, i, d)) { if (h.pts > 0) p += h.pts; else n += h.pts; } }); });
+      document.getElementById('posPoints').textContent = p;
+      document.getElementById('negPoints').textContent = n;
+      document.getElementById('totalPoints').textContent = p + n;
+    }
+
+    function unlock() {
+      if (document.getElementById('pwdInput').value === state.pwd) {
+        isUnlocked = true; document.body.classList.remove('view-only');
+        document.getElementById('lockBtn').innerHTML = '🔒 已解锁';
+        closeModal('pwdModal'); render();
+      } else { alert('密码错误'); }
+    }
+
+    // --- 新的添加逻辑 (自定义弹窗回调) ---
+    function confirmAddChild() {
+      const name = document.getElementById('newChildName').value.trim();
+      if (name) {
+        const id = Date.now().toString();
+        state.children.push({ id, name, habits: [...TEMPLATE] });
+        activeId = id;
+        document.getElementById('newChildName').value = '';
+        closeModal('addChildModal');
+        render(); syncPush();
+      }
+    }
+
+    function confirmAddHabit() {
+      const name = document.getElementById('newHabitName').value.trim();
+      const pts = parseInt(document.getElementById('newHabitPts').value);
+      if (name && !isNaN(pts)) {
+        const child = state.children.find(c => c.id === activeId);
+        child.habits.push({ name, pts });
+        document.getElementById('newHabitName').value = '';
+        document.getElementById('newHabitPts').value = '';
+        closeModal('addHabitModal');
+        render(); syncPush();
+      }
+    }
+
+    function delHabit(idx) {
+      if(confirm('确定删除该项？')) {
+        state.children.find(c => c.id === activeId).habits.splice(idx, 1);
+        state.checks[activeId] = {}; // 重置防止索引位移
+        render(); syncPush();
+      }
+    }
+
+    function applyTemplate() {
+        if(confirm('载入模板会重置当前习惯列表，确定吗？')) {
+            state.children.find(c => c.id === activeId).habits = [...TEMPLATE];
+            state.checks[activeId] = {}; render();
+        }
+    }
+
+    // --- 云同步 ---
+    async function identifyCloud() {
+      const t = document.getElementById('ghTokenInput').value.trim();
+      if (!t.startsWith('ghp_')) return alert('Token 格式错误');
+      try {
+        const res = await fetch('https://api.github.com/gists', { headers: { 'Authorization': `token ${t}` } });
+        const gists = await res.json();
+        const f = gists.find(g => g.files[CLOUD.file]);
+        CLOUD.token = t; localStorage.setItem('gh_token_v3', t);
+        if (f) {
+          CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v3', f.id);
+          if (confirm('发现云端备份，是否载入？')) await pull();
+        } else { await push(); }
+        updateUI(true); closeModal('syncModal');
+      } catch (e) { alert('同步失败'); }
+    }
+
+    async function push() {
+      if (!CLOUD.token) return;
+      const url = CLOUD.gistId ? `https://api.github.com/gists/${CLOUD.gistId}` : 'https://api.github.com/gists';
+      const res = await fetch(url, {
+        method: CLOUD.gistId ? 'PATCH' : 'POST',
+        headers: { 'Authorization': `token ${CLOUD.token}` },
+        body: JSON.stringify({ public: false, files: { [CLOUD.file]: { content: JSON.stringify(state) } } })
+      });
+      const d = await res.json();
+      if (d.id) { CLOUD.gistId = d.id; localStorage.setItem('gh_gist_id_v3', d.id); }
+    }
+
+    async function pull() {
+      const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`, { headers: { 'Authorization': `token ${CLOUD.token}` } });
+      const g = await res.json();
+      const s = JSON.parse(g.files[CLOUD.file].content);
+      if (s) { state = s; render(); updateUI(true); }
+    }
+
+    function syncPush() {
+      if (!CLOUD.token || !CLOUD.gistId) return;
+      document.getElementById('cloudIndicator').textContent = '☁️ 同步中...';
+      push().then(() => { document.getElementById('cloudIndicator').textContent = '☁️ 已云同步'; });
+    }
+
+    // --- 通用 ---
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function save() { localStorage.setItem('habit_state_v3', JSON.stringify(state)); }
+    function updateUI(on) { 
+      const e = document.getElementById('cloudIndicator');
+      e.textContent = on ? '☁️ 云同步开启' : '☁️ 本地模式';
+      e.style.background = on ? 'rgba(76, 175, 80, 0.4)' : 'rgba(255,255,255,0.2)';
+    }
+    function exportJSON() {
+      const b = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+      a.download = `习惯积分备份.json`; a.click();
+    }
+  </script>
+</body>
+</html>
