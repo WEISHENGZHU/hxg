@@ -12,7 +12,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Hiragino Sans GB", "Microsoft YaHei", "Arial Rounded MT Bold", sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    body { background: var(--bg); color: #2d3436; padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
+    body { background: var(--bg); color: #2d3436; padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
 
     /* 身份隔离 */
     .role-child .parent-only { display: none !important; }
@@ -41,12 +41,11 @@
       padding: 6px 16px; border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* 排行榜切换器 */
+    /* 排行榜 */
     .switch-container { display: flex; background: #f1f2f6; padding: 6px; border-radius: 20px; margin-bottom: 15px; gap: 4px; }
     .switch-item { flex: 1; text-align: center; padding: 8px 5px; border-radius: 16px; font-size: 0.8rem; font-weight: 900; color: #b2bec3; cursor: pointer; transition: 0.3s; }
     .switch-item.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.05); transform: scale(1.05); }
 
-    /* 排行榜星球卡片 */
     .planet-card { display: flex; align-items: center; padding: 15px 20px; border-radius: 25px; background: #fff; border: 2px solid #f1f2f6; transition: 0.3s; margin-bottom: 10px; }
     .rank-1 { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border-color: #ffe066; transform: scale(1.02); }
     .planet-info { display: flex; align-items: center; gap: 15px; flex: 1; }
@@ -54,16 +53,18 @@
     .planet-name { font-weight: 900; font-size: 1.1rem; }
     .planet-score { font-weight: 900; font-size: 1.3rem; color: var(--primary); }
 
-    /* 名字导航 */
-    .child-name-list { display: flex; gap: 12px; justify-content: center; overflow-x: auto; padding: 15px 5px; scrollbar-width: none; }
-    .name-tab { padding: 10px 22px; background: #f8f9fa; border-radius: 25px; cursor: pointer; white-space: nowrap; font-size: 1.1rem; font-weight: 900; color: #b2bec3; border: 3px solid transparent; }
+    /* 名字导航优化：增加编辑按钮 */
+    .child-name-list { display: flex; gap: 12px; justify-content: center; overflow-x: auto; padding: 15px 5px; scrollbar-width: none; align-items: center; }
+    .name-tab-wrap { position: relative; }
+    .name-tab { padding: 10px 22px; background: #f8f9fa; border-radius: 25px; cursor: pointer; white-space: nowrap; font-size: 1.1rem; font-weight: 900; color: #b2bec3; border: 3px solid transparent; transition: 0.3s; }
     .name-tab.active { background: #fff; color: var(--primary); border-color: #dff9fb; box-shadow: 0 8px 15px rgba(116, 185, 255, 0.25); transform: scale(1.1); }
+    .edit-name-btn { position: absolute; top: -5px; right: -5px; background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; cursor: pointer; }
 
     /* 小金库 */
     .wallet-section { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border: 3px solid #ffec99; text-align: center; }
     .balance-num { font-size: 2.8rem; font-weight: 900; color: #f08c00; text-shadow: 2px 2px 0px white; }
     
-    /* 习惯行 */
+    /* 习惯列表 */
     .habit-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 5px; border-bottom: 2px dashed #f1f2f6; }
     .check-btn { width: 52px; height: 52px; border-radius: 22px; border: 4px solid #edf2f7; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; background: #fff; }
     .check-btn.checked-pos { background: var(--success); border-color: #c2fbd7; color: white; }
@@ -71,16 +72,29 @@
     .sort-controls { display: flex; gap: 5px; }
     .btn-arrow { padding: 8px; border-radius: 12px; background: #f0f3f8; font-size: 0.9rem; width: 40px; height: 40px; }
 
-    /* 弹窗 */
+    /* 底部导航优化 */
+    .footer-bar { 
+        position: fixed; bottom: 0; left: 0; right: 0; 
+        background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); 
+        padding: 10px 15px; border-top: 1px solid #f1f2f6; border-radius: 30px 30px 0 0;
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    }
+    .footer-bar button { 
+        padding: 10px 2px; border-radius: 18px; font-size: 0.72rem; 
+        white-space: nowrap; box-shadow: none; font-weight: 900;
+        letter-spacing: -0.5px;
+    }
+    .footer-bar button i { display: block; font-style: normal; margin-bottom: 2px; font-size: 1.1rem; }
+
+    /* 模态框 */
     .modal { position: fixed; inset: 0; background: rgba(45, 52, 54, 0.3); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-content { background: white; padding: 30px; border-radius: 40px; width: 100%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.12); }
     input, select { width: 100%; padding: 16px; margin: 10px 0; border: 3px solid #f1f2f6; border-radius: 22px; font-size: 1rem; outline: none; background: #f8f9fa; }
-
-    .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); padding: 12px 20px; display: flex; gap: 12px; border-top: 2px solid #f1f2f6; border-radius: 30px 30px 0 0; }
   </style>
 </head>
 <body class="role-child">
 
+  <!-- 初始身份选择 -->
   <div class="modal" id="identityModal" style="display:none;">
     <div class="modal-content" style="text-align:center;">
       <h2 style="margin-bottom:20px; color:var(--primary);">欢迎回来 ✨</h2>
@@ -101,6 +115,7 @@
     <div id="currentRoleTag" class="role-tag" onclick="switchRoleAction()">身份: 孩子</div>
   </header>
 
+  <!-- 荣誉星球 -->
   <section class="bubble-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
       <strong style="font-size:1.1rem; color:#636e72;">🏆 荣誉星球</strong>
@@ -113,6 +128,7 @@
     <div class="planet-rank-container" id="leaderboardArea"></div>
   </section>
 
+  <!-- 小金库 -->
   <section class="bubble-card wallet-section" onclick="openModal('moneyModal')">
     <strong style="color:#e67e22; font-size:1rem;">💰 零花钱金库</strong>
     <div class="balance-num">
@@ -121,13 +137,16 @@
     <p style="font-size:0.8rem; color:#f39c12; font-weight:bold;">点点看 记一笔账 📝</p>
   </section>
 
+  <!-- 日历 & 名字导航 -->
   <section class="bubble-card">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <button class="btn-soft" onclick="changeDate(-1)" style="padding:10px 15px;">◀</button>
       <div id="dateLabel" style="font-size:1.4rem; font-weight:900; color:var(--primary); text-shadow: 2px 2px 0px #e3f2fd;">2023.10.27</div>
       <button class="btn-soft" onclick="changeDate(1)" style="padding:10px 15px;">▶</button>
     </div>
+    
     <div class="child-name-list" id="childTabList"></div>
+
     <div style="display:flex; gap:15px; margin-top:10px;">
       <div style="flex:1; background:#f9fbfd; padding:12px; border-radius:25px; text-align:center; border:2px solid #f1f2f6;">
         <div style="font-size:0.7rem; color:#999;">今日小红花</div>
@@ -140,11 +159,11 @@
     </div>
   </section>
 
+  <!-- 任务清单 -->
   <section class="bubble-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
       <strong style="font-size:1.1rem;">📝 任务清单</strong>
       <div class="parent-only" style="display:flex; gap:8px;">
-        <!-- 功能点1：排序按钮 -->
         <button onclick="toggleSortMode()" id="sortBtn" class="btn-sort">🔃 修改排序</button>
         <button onclick="parentSecurityAuth(()=>openModal('addHabitModal'))" class="btn-main" style="font-size:0.75rem; border-radius:15px;">+ 新任务</button>
       </div>
@@ -152,45 +171,39 @@
     <div id="habitContainer"></div>
   </section>
 
+  <!-- 家长审批 -->
   <section id="approvalSection" class="bubble-card parent-only" style="display:none; border-top:4px solid var(--warning);">
-    <strong style="color:#d35400;">👩‍🏫 孩子提交的申请</strong>
+    <strong style="color:#d35400;">👩‍🏫 待确认申请</strong>
     <div id="approvalList" style="margin-top:15px;"></div>
   </section>
 
+  <!-- 优化后的底部导航 -->
   <div class="footer-bar parent-only">
-    <button class="btn-soft" onclick="parentSecurityAuth(()=>openModal('addChildModal'))" style="flex:1; font-size:0.7rem;">+ 成员</button>
-    <button class="btn-soft" onclick="openModal('syncModal')" style="flex:1; font-size:0.7rem;">☁️ 同步</button>
-    <button class="btn-soft" onclick="parentSecurityAuth(handleCurrencyEdit)" style="flex:1; font-size:0.7rem;">符号</button>
-    <button class="btn-soft" onclick="openModal('changePwdModal')" style="flex:1; font-size:0.7rem;">🔐 密码</button>
+    <button class="btn-soft" onclick="parentSecurityAuth(()=>openModal('addChildModal'))"><i>👶</i>+成员</button>
+    <button class="btn-soft" onclick="openModal('syncModal')"><i>☁️</i>云同步</button>
+    <button class="btn-soft" onclick="parentSecurityAuth(handleCurrencyEdit)"><i>💰</i>货币</button>
+    <button class="btn-soft" onclick="openModal('changePwdModal')"><i>🔐</i>密码</button>
   </div>
 
-  <!-- 弹窗：同步 -->
-  <div class="modal" id="syncModal"><div class="modal-content">
-    <h3 style="color:var(--purple); margin-bottom:15px;">GitHub 云同步 ☁️</h3>
-    <input type="password" id="ghTokenInput" placeholder="粘贴 Token (ghp_...)" />
-    <div style="display:flex; gap:10px; margin:10px 0;">
-      <button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="flex:1; background:#24292e; color:white; font-size:0.65rem; border-radius:15px;">1. 一键获取</button>
-      <button onclick="alert('教程：\n1. 点击[一键获取]登录GitHub\n2. 页面底部点[Generate token]\n3. 复制生成的ghp_代码回到这里粘贴\n4. 点击[连接云端]')" style="flex:1; background:var(--primary); color:white; font-size:0.65rem; border-radius:15px;">2. 获取教程</button>
+  <!-- --- 弹窗集合 --- -->
+  
+  <!-- 修改名字弹窗 -->
+  <div class="modal" id="editChildModal"><div class="modal-content">
+    <h3>修改宝贝名字 ✏️</h3>
+    <input type="text" id="editChildNameInput" placeholder="新的名字" />
+    <div style="display:flex; gap:12px; margin-top:15px;">
+      <button onclick="closeModal('editChildModal')" class="btn-soft" style="flex:1;">取消</button>
+      <button onclick="confirmEditChildName()" class="btn-main" style="flex:1;">确认修改</button>
     </div>
-    <button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%; background:var(--purple);">连接云端并同步</button>
-    <button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px; background:none; color:#999; border:none;">取消</button>
   </div></div>
 
-  <!-- 弹窗：记账 -->
-  <div class="modal" id="moneyModal"><div class="modal-content">
-    <h3 style="color:var(--gold);">记账收支 📝</h3>
-    <select id="moneyType"><option value="income">➕ 存入(奖励/收入)</option><option value="expense">➖ 支出(买东西)</option></select>
-    <input type="number" id="moneyAmount" placeholder="金额" step="0.1" />
-    <input type="text" id="moneyNote" placeholder="备注" />
-    <div style="display:flex; gap:12px;"><button onclick="closeModal('moneyModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmMoney()" class="btn-main" style="flex:1; background:var(--gold);">登记</button></div>
-  </div></div>
-
-  <!-- 其它弹窗（新增、密码等） -->
-  <div class="modal" id="pwdModal"><div class="modal-content"><h3 id="pwdTitle" style="color:var(--primary);">安全验证</h3><input type="password" id="pwdInput" placeholder="请输入密码" /><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('pwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAuth()" class="btn-main" style="flex:1;">确认</button></div></div></div>
+  <!-- 其它弹窗维持逻辑 -->
+  <div class="modal" id="syncModal"><div class="modal-content"><h3>云同步 ☁️</h3><input type="password" id="ghTokenInput" placeholder="Token"/><div style="display:flex; gap:10px; margin:10px 0;"><button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="flex:1; background:#24292e; color:white; font-size:0.65rem; border-radius:15px;">一键获取</button><button onclick="alert('教程：登录GitHub生成ghp_开头的Token后粘贴到此处。')" style="flex:1; background:var(--primary); color:white; font-size:0.65rem; border-radius:15px;">获取教程</button></div><button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%; background:var(--purple);">连接并同步</button><button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px; border:none; background:none; color:#999;">取消</button></div></div>
+  <div class="modal" id="pwdModal"><div class="modal-content"><h3 id="pwdTitle" style="color:var(--primary);">验证</h3><input type="password" id="pwdInput" placeholder="密码"/><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('pwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAuth()" class="btn-main" style="flex:1;">确认</button></div></div></div>
+  <div class="modal" id="moneyModal"><div class="modal-content"><h3>记账收支 📝</h3><select id="moneyType"><option value="income">➕ 零花钱/奖励</option><option value="expense">➖ 消费/买东西</option></select><input type="number" id="moneyAmount" placeholder="金额"/><input type="text" id="moneyNote" placeholder="备注"/><div style="display:flex; gap:12px;"><button onclick="closeModal('moneyModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmMoney()" class="btn-main" style="flex:1; background:var(--gold);">登记</button></div></div></div>
   <div class="modal" id="changePwdModal"><div class="modal-content"><h3>修改密码</h3><input type="password" id="oldPwdField" placeholder="原密码"/><input type="password" id="newPwdField1" placeholder="新密码"/><input type="password" id="newPwdField2" placeholder="确认新密码"/><div style="display:flex;gap:12px;"><button onclick="closeModal('changePwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmChangePwd()" class="btn-main" style="flex:1;">保存</button></div></div></div>
   <div class="modal" id="addHabitModal"><div class="modal-content"><h3>新任务</h3><input type="text" id="newHabitName" placeholder="名称"/><input type="number" id="newHabitPts" placeholder="分值"/><div style="display:flex;gap:12px;"><button onclick="closeModal('addHabitModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddHabit()" class="btn-main" style="flex:1;">保存</button></div></div></div>
   <div class="modal" id="addChildModal"><div class="modal-content"><h3>新成员</h3><input type="text" id="newChildName" placeholder="姓名"/><div style="display:flex;gap:12px;"><button onclick="closeModal('addChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddChild()" class="btn-main" style="flex:1;">确认</button></div></div></div>
-  <div class="modal" id="recoveryModal"><div class="modal-content"><h3>系统重置</h3><input type="password" id="recoveryField" placeholder="验证信息"/><button onclick="handleRecovery()" class="btn-main" style="width:100%; background:var(--danger);">执行重置</button></div></div>
 
   <script>
     const DEFAULT_HABITS = [{name:'📖 认真阅读',pts:3},{name:'✍️ 完成作业',pts:3},{name:'🏠 整理内务',pts:2},{name:'🛌 准时休息',pts:2},{name:'📺 电子超时',pts:-5},{name:'😤 乱发脾气',pts:-5}];
@@ -198,11 +211,7 @@
       children: [{ id: '1', name: '宝贝', habits: [...DEFAULT_HABITS] }],
       checks: {}, ledgers: {}, settings: { currency: '￥' }, pwd: '123456', userRole: null 
     };
-    let activeId = '1';
-    let selectedDate = new Date().toISOString().split('T')[0];
-    let rankType = 'month';
-    let authCallback = null;
-    let isSorting = false; // 功能点1：排序状态
+    let activeId = '1', selectedDate = new Date().toISOString().split('T')[0], rankType = 'month', authCallback = null, isSorting = false, editingChildId = null;
 
     const CLOUD = { token: localStorage.getItem('gh_token_v10'), gistId: localStorage.getItem('gh_gist_id_v10'), file: 'habit_v10.json' };
 
@@ -216,37 +225,26 @@
 
     function saveState() { localStorage.setItem('habit_v10_state', JSON.stringify(state)); }
 
-    // --- 弹窗逻辑 (功能点2：自动清空) ---
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        // 自动清空所有输入框
-        const inputs = modal.querySelectorAll('input');
-        inputs.forEach(input => input.value = '');
-        const selects = modal.querySelectorAll('select');
-        selects.forEach(sel => sel.selectedIndex = 0);
-        
-        modal.style.display = 'flex';
+    // --- 修改名字逻辑 ---
+    function promptEditChildName(id) {
+        editingChildId = id;
+        const child = state.children.find(c => c.id === id);
+        openModal('editChildModal');
+        document.getElementById('editChildNameInput').value = child.name;
     }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    // --- 排序逻辑 (功能点1) ---
-    function toggleSortMode() {
-        isSorting = !isSorting;
-        document.getElementById('sortBtn').textContent = isSorting ? '✅ 完成排序' : '🔃 修改排序';
-        render();
-    }
-    function moveHabit(idx, direction) {
-        const child = state.children.find(c => c.id === activeId);
-        if (direction === -1 && idx > 0) {
-            [child.habits[idx], child.habits[idx-1]] = [child.habits[idx-1], child.habits[idx]];
-        } else if (direction === 1 && idx < child.habits.length - 1) {
-            [child.habits[idx], child.habits[idx+1]] = [child.habits[idx+1], child.habits[idx]];
+    function confirmEditChildName() {
+        const newName = document.getElementById('editChildNameInput').value.trim();
+        if (newName && editingChildId) {
+            const child = state.children.find(c => c.id === editingChildId);
+            child.name = newName;
+            editingChildId = null;
+            closeModal('editChildModal');
+            render();
+            syncPush();
         }
-        render();
-        syncPush();
     }
 
-    // --- 身份与验证 ---
+    // --- 身份选择逻辑 ---
     function showChildSelector() {
         document.getElementById('idPhase1').style.display = 'none';
         document.getElementById('idPhase2').style.display = 'block';
@@ -267,18 +265,18 @@
       else if(confirm('切换到孩子模式？')) { openModal('identityModal'); backToPhase1(); }
     }
     function selectRole(role) { state.userRole = role; applyRole(role); render(); }
+
     function switchChild(id) {
         if (id === activeId) return;
         if (state.userRole === 'child') { document.getElementById('pwdTitle').textContent="切换成员需家长验证"; parentSecurityAuth(()=>{ activeId=id; render(); }); }
         else { activeId=id; render(); }
     }
+
     function parentSecurityAuth(cb) { authCallback = cb; openModal('pwdModal'); }
     function confirmAuth() {
       const input = document.getElementById('pwdInput').value;
-      if (input === state.pwd || input === '911205') {
-        closeModal('pwdModal');
-        if (authCallback) { authCallback(); authCallback = null; }
-      } else alert('验证失败');
+      if (input === state.pwd || input === '911205') { closeModal('pwdModal'); if (authCallback) { authCallback(); authCallback = null; } }
+      else alert('验证失败');
     }
 
     // --- 渲染逻辑 ---
@@ -287,7 +285,12 @@
       document.getElementById('currencySym').textContent = state.settings.currency;
       
       const tabs = document.getElementById('childTabList');
-      tabs.innerHTML = state.children.map(c => `<div class="name-tab ${c.id===activeId?'active':''}" onclick="switchChild('${c.id}')">${c.name}</div>`).join('');
+      tabs.innerHTML = state.children.map(c => `
+        <div class="name-tab-wrap">
+            <div class="name-tab ${c.id===activeId?'active':''}" onclick="switchChild('${c.id}')">${c.name}</div>
+            ${(state.userRole === 'parent') ? `<div class="edit-name-btn" onclick="promptEditChildName('${c.id}')">✏️</div>` : ''}
+        </div>
+      `).join('');
 
       const child = state.children.find(c => c.id === activeId) || state.children[0];
       const container = document.getElementById('habitContainer');
@@ -295,175 +298,43 @@
         const check = (state.checks[activeId] && state.checks[activeId][selectedDate]) ? state.checks[activeId][selectedDate][idx] : null;
         const isChecked = !!check;
         const isApproved = check ? check.approved : true;
-        
         let actionUI = `<div class="check-btn ${isChecked?(h.pts>0?'checked-pos':'checked-neg'):''}" onclick="toggleHabit(${idx})">${isChecked?'✓':''}</div>`;
         if (isSorting && state.userRole === 'parent') {
-            actionUI = `<div class="sort-controls">
-                <button class="btn-arrow" onclick="moveHabit(${idx}, -1)">⬆️</button>
-                <button class="btn-arrow" onclick="moveHabit(${idx}, 1)">⬇️</button>
-            </div>`;
+            actionUI = `<div class="sort-controls"><button class="btn-arrow" onclick="moveHabit(${idx},-1)">⬆️</button><button class="btn-arrow" onclick="moveHabit(${idx},1)">⬇️</button></div>`;
         }
-
         return `<div class="habit-row ${!isApproved?'unapproved-row':''}">
-            <div style="flex:1">
-                <div style="font-weight:900;">${h.name}</div>
-                <div style="font-size:0.75rem; color:${h.pts>0?'var(--success)':'var(--danger)'}; font-weight:bold;">${h.pts>0?'+':''}${h.pts} 分</div>
-            </div>
+            <div style="flex:1"><div style="font-weight:900;">${h.name}</div><div style="font-size:0.75rem; color:${h.pts>0?'var(--success)':'var(--danger)'}; font-weight:bold;">${h.pts>0?'+':''}${h.pts} 分</div></div>
             ${actionUI}
             ${(isSorting && state.userRole === 'parent') ? `<button onclick="delHabit(${idx})" style="background:none; box-shadow:none; color:var(--danger); margin-left:10px;">🗑️</button>` : ''}
         </div>`;
       }).join('');
 
-      renderLeaderboard();
-      renderWallet();
-      calcScores();
-      renderApprovals();
-      saveState();
+      renderLeaderboard(); renderWallet(); calcScores(); renderApprovals(); saveState();
     }
 
-    // --- 统计与记账 ---
-    function setRankType(type) {
-      rankType = type;
-      document.querySelectorAll('.switch-item').forEach(el => el.classList.remove('active'));
-      document.getElementById('sw-' + type).classList.add('active');
-      renderLeaderboard();
-    }
-
-    function getWeekRange(dateStr) {
-      const d = new Date(dateStr);
-      const day = d.getDay() || 7;
-      const mon = new Date(d); mon.setDate(d.getDate() - day + 1);
-      const sun = new Date(d); sun.setDate(d.getDate() - day + 7);
-      return { start: mon.toISOString().split('T')[0], end: sun.toISOString().split('T')[0] };
-    }
-
-    function renderLeaderboard() {
-      const ranks = state.children.map(c => {
-        let s = 0; const cks = state.checks[c.id] || {};
-        const week = getWeekRange(selectedDate);
-        const curM = selectedDate.substring(0, 7);
-        Object.keys(cks).forEach(d => {
-          let isMatch = false;
-          if (rankType === 'total') isMatch = true;
-          else if (rankType === 'month' && d.startsWith(curM)) isMatch = true;
-          else if (rankType === 'week' && d >= week.start && d <= week.end) isMatch = true;
-          if (isMatch) {
-            Object.keys(cks[d]).forEach(i => { if(cks[d][i] && cks[d][i].approved && c.habits[i]) s += c.habits[i].pts; });
-          }
-        });
-        return { name: c.name, score: s };
-      }).sort((a,b) => b.score - a.score);
-
-      document.getElementById('leaderboardArea').innerHTML = ranks.map((r, i) => {
-        const medals = ['🥇', '🥈', '🥉'];
-        return `<div class="planet-card ${i < 3 ? `rank-${i+1}` : ''}">
-            <div class="planet-info"><div class="planet-avatar">${medals[i] || '⭐'}</div><div><div class="planet-name">${r.name}</div><div class="rank-badge">${i+1}号星球</div></div></div>
-            <div class="planet-score">${r.score}</div>
-          </div>`;
-      }).join('');
-    }
-
-    function toggleHabit(idx) {
-      if (isSorting) return;
-      if (!state.checks[activeId]) state.checks[activeId] = {};
-      if (!state.checks[activeId][selectedDate]) state.checks[activeId][selectedDate] = {};
-      if (state.checks[activeId][selectedDate][idx]) delete state.checks[activeId][selectedDate][idx];
-      else state.checks[activeId][selectedDate][idx] = { approved: (state.userRole === 'parent') };
-      render(); syncPush();
-    }
-
-    function confirmMoney() {
-      const amt = parseFloat(document.getElementById('moneyAmount').value);
-      if (!amt) return;
-      if (!state.ledgers[activeId]) state.ledgers[activeId] = [];
-      state.ledgers[activeId].push({
-        date: selectedDate, amount: amt, type: document.getElementById('moneyType').value, note: document.getElementById('moneyNote').value || '收支记录',
-        approved: (state.userRole === 'parent') 
-      });
-      closeModal('moneyModal'); render(); syncPush();
-    }
-
-    function renderWallet() {
-      let bal = 0; (state.ledgers[activeId]||[]).forEach(t => { if(t.approved) bal += (t.type==='income'?1:-1)*t.amount; });
-      document.getElementById('balanceDisplay').textContent = bal.toFixed(2);
-    }
-
-    function renderApprovals() {
-      if (state.userRole !== 'parent') return;
-      const area = document.getElementById('approvalList'); let html = '';
-      Object.keys(state.checks).forEach(cId => {
-        const cName = state.children.find(x=>x.id===cId)?.name;
-        Object.keys(state.checks[cId]).forEach(d => {
-          Object.keys(state.checks[cId][d]).forEach(hIdx => {
-            if(!state.checks[cId][d][hIdx].approved) {
-              const hName = state.children.find(x=>x.id===cId)?.habits[hIdx]?.name;
-              html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><span>[打卡] ${cName}: ${hName}</span><button onclick="approveAction('check','${cId}','${d}',${hIdx})" class="btn-main" style="padding:5px 12px; font-size:0.75rem;">确认</button></div>`;
-            }
-          });
-        });
-      });
-      Object.keys(state.ledgers).forEach(cId => {
-        const cName = state.children.find(x=>x.id===cId)?.name;
-        state.ledgers[cId].forEach((t, i) => {
-          if(!t.approved) {
-            html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><span>[收支] ${cName}: ${t.amount}</span><button onclick="approveAction('ledger','${cId}',${i})" class="btn-main" style="padding:5px 12px; font-size:0.75rem;">确认</button></div>`;
-          }
-        });
-      });
-      document.getElementById('approvalSection').style.display = html ? 'block' : 'none';
-      area.innerHTML = html;
-    }
-
-    function approveAction(type, cId, p1, p2) {
-      if (type === 'check') state.checks[cId][p1][p2].approved = true;
-      else state.ledgers[cId][p1].approved = true;
-      render(); syncPush();
-    }
-
-    function changeDate(n) {
-      let d = new Date(selectedDate); d.setDate(d.getDate()+n);
-      selectedDate = d.toISOString().split('T')[0]; render();
-    }
-    function calcScores() {
-      let d=0, m=0; const curM = selectedDate.substring(0,7); const cks = state.checks[activeId]||{};
-      const hbs = state.children.find(c=>c.id===activeId).habits;
-      Object.keys(cks).forEach(dt => {
-        let ds = 0; Object.keys(cks[dt]).forEach(i => { if(cks[dt][i] && cks[dt][i].approved && hbs[i]) ds += hbs[i].pts; });
-        if(dt===selectedDate) d = ds; if(dt.startsWith(curM)) m += ds;
-      });
-      document.getElementById('dayScore').textContent = d; document.getElementById('monthScore').textContent = m;
-    }
-    function handleCurrencyEdit() { const sym = prompt('货币符号', state.settings.currency); if(sym){state.settings.currency=sym; render(); syncPush();}}
-    function confirmChangePwd() {
-      const o = document.getElementById('oldPwdField').value, n1 = document.getElementById('newPwdField1').value, n2 = document.getElementById('newPwdField2').value;
-      if(o!==state.pwd) return alert('原密码错误'); if(n1!==n2) return alert('输入不一致');
-      state.pwd=n1; saveState(); alert('修改成功'); closeModal('changePwdModal');
-    }
-    function handleRecovery() { if(document.getElementById('recoveryField').value==='911205'){state.pwd='123456'; saveState(); alert('重置成功'); closeModal('recoveryModal');}}
+    // --- 逻辑函数 ---
+    function openModal(id) { const m = document.getElementById(id); m.querySelectorAll('input').forEach(i => i.value = ''); m.querySelectorAll('select').forEach(s => s.selectedIndex = 0); m.style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function setRankType(t) { rankType = t; document.querySelectorAll('.switch-item').forEach(el => el.classList.toggle('active', el.id === 'sw-' + t)); renderLeaderboard(); }
+    function toggleSortMode() { isSorting = !isSorting; document.getElementById('sortBtn').textContent = isSorting ? '✅ 完成' : '🔃 排序'; render(); }
+    function moveHabit(idx, dir) { const c = state.children.find(c => c.id === activeId); if (dir===-1 && idx>0) [c.habits[idx], c.habits[idx-1]] = [c.habits[idx-1], c.habits[idx]]; else if (dir===1 && idx<c.habits.length-1) [c.habits[idx], c.habits[idx+1]] = [c.habits[idx+1], c.habits[idx]]; render(); syncPush(); }
+    function toggleHabit(idx) { if (isSorting) return; if (!state.checks[activeId]) state.checks[activeId] = {}; if (!state.checks[activeId][selectedDate]) state.checks[activeId][selectedDate] = {}; if (state.checks[activeId][selectedDate][idx]) delete state.checks[activeId][selectedDate][idx]; else state.checks[activeId][selectedDate][idx] = { approved: (state.userRole === 'parent') }; render(); syncPush(); }
+    function confirmMoney() { const a = parseFloat(document.getElementById('moneyAmount').value); if (!a) return; if (!state.ledgers[activeId]) state.ledgers[activeId] = []; state.ledgers[activeId].push({ date: selectedDate, amount: a, type: document.getElementById('moneyType').value, note: document.getElementById('moneyNote').value || '记账', approved: (state.userRole === 'parent') }); closeModal('moneyModal'); render(); syncPush(); }
+    function renderWallet() { let bal = 0; (state.ledgers[activeId]||[]).forEach(t => { if(t.approved) bal += (t.type==='income'?1:-1)*t.amount; }); document.getElementById('balanceDisplay').textContent = bal.toFixed(2); }
+    function renderApprovals() { if (state.userRole !== 'parent') return; const area = document.getElementById('approvalList'); let html = ''; Object.keys(state.checks).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; Object.keys(state.checks[cId]).forEach(d => { Object.keys(state.checks[cId][d]).forEach(hIdx => { if(!state.checks[cId][d][hIdx].approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[打卡] ${cName}: ${state.children.find(x=>x.id===cId).habits[hIdx].name}</span><button onclick="approveAction('check','${cId}','${d}',${hIdx})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">确认</button></div>`; }); }); }); Object.keys(state.ledgers).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; state.ledgers[cId].forEach((t, i) => { if(!t.approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[账本] ${cName}: ${t.amount}</span><button onclick="approveAction('ledger','${cId}',${i})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">确认</button></div>`; }); }); document.getElementById('approvalSection').style.display = html ? 'block' : 'none'; area.innerHTML = html; }
+    function approveAction(t, c, p1, p2) { if (t==='check') state.checks[c][p1][p2].approved = true; else state.ledgers[c][p1].approved = true; render(); syncPush(); }
+    function changeDate(n) { let d = new Date(selectedDate); d.setDate(d.getDate()+n); selectedDate = d.toISOString().split('T')[0]; render(); }
+    function renderLeaderboard() { const ranks = state.children.map(c => { let s = 0; const cks = state.checks[c.id] || {}; const d = new Date(selectedDate), day = d.getDay()||7, mon = new Date(d); mon.setDate(d.getDate()-day+1); const sun = new Date(d); sun.setDate(d.getDate()-day+7); const wS = mon.toISOString().split('T')[0], wE = sun.toISOString().split('T')[0], curM = selectedDate.substring(0,7); Object.keys(cks).forEach(dt => { let match = (rankType==='total' || (rankType==='month'&&dt.startsWith(curM)) || (rankType==='week'&&dt>=wS&&dt<=wE)); if(match) Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && c.habits[i]) s += c.habits[i].pts; }); }); return { name: c.name, score: s }; }).sort((a,b) => b.score - a.score); document.getElementById('leaderboardArea').innerHTML = ranks.map((r, i) => `<div class="planet-card ${i < 3 ? `rank-${i+1}` : ''}"><div class="planet-info"><div class="planet-avatar">${['🥇','🥈','🥉'][i] || '⭐'}</div><div><div class="planet-name">${r.name}</div><div class="rank-badge">${i+1}号星球</div></div></div><div class="planet-score">${r.score}</div></div>`).join(''); }
+    function calcScores() { let d=0, m=0; const curM = selectedDate.substring(0,7), cks = state.checks[activeId]||{}, hbs = state.children.find(c=>c.id===activeId).habits; Object.keys(cks).forEach(dt => { let ds = 0; Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && hbs[i]) ds += hbs[i].pts; }); if(dt===selectedDate) d = ds; if(dt.startsWith(curM)) m += ds; }); document.getElementById('dayScore').textContent = d; document.getElementById('monthScore').textContent = m; }
+    function handleCurrencyEdit() { const s = prompt('货币符号', state.settings.currency); if(s){state.settings.currency=s; render(); syncPush();}}
+    function confirmChangePwd() { const o = document.getElementById('oldPwdField').value, n1 = document.getElementById('newPwdField1').value, n2 = document.getElementById('newPwdField2').value; if(o!==state.pwd) return alert('原密码错误'); if(n1!==n2) return alert('确认新密码输入不一致'); state.pwd=n1; saveState(); alert('成功'); closeModal('changePwdModal'); }
+    function handleRecovery() { if(document.getElementById('recoveryField').value==='911205'){state.pwd='123456'; saveState(); alert('已重置'); closeModal('recoveryModal');}}
     function confirmAddChild() { const n = document.getElementById('newChildName').value; if(n){ state.children.push({id:Date.now().toString(),name:n,habits:[...DEFAULT_HABITS]}); closeModal('addChildModal'); render(); syncPush(); } }
-    function confirmAddHabit() { const n = document.getElementById('newHabitName').value; const p = parseInt(document.getElementById('newHabitPts').value); if(n&&!isNaN(p)){ state.children.find(c=>c.id===activeId).habits.push({name:n,pts:p}); closeModal('addHabitModal'); render(); syncPush(); } }
+    function confirmAddHabit() { const n = document.getElementById('newHabitName').value, p = parseInt(document.getElementById('newHabitPts').value); if(n&&!isNaN(p)){ state.children.find(c=>c.id===activeId).habits.push({name:n,pts:p}); closeModal('addHabitModal'); render(); syncPush(); } }
     function delHabit(i) { if(confirm('删除项目将清空该项所有历史记录，确定吗？')) { state.children.find(c=>c.id===activeId).habits.splice(i,1); render(); syncPush(); } }
-
-    async function identifyCloud() {
-      const t = document.getElementById('ghTokenInput').value;
-      try {
-        const res = await fetch('https://api.github.com/gists',{headers:{'Authorization':`token ${t}`}});
-        const gists = await res.json(); const f = gists.find(g => g.files[CLOUD.file]);
-        CLOUD.token = t; localStorage.setItem('gh_token_v10', t);
-        if(f){ CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v10', f.id); await pull(); } else await push();
-        render(); closeModal('syncModal');
-      } catch(e){ alert('失败'); }
-    }
-    async function push() {
-      if(!CLOUD.token) return;
-      const url = CLOUD.gistId ? `https://api.github.com/gists/${CLOUD.gistId}` : 'https://api.github.com/gists';
-      await fetch(url, { method: CLOUD.gistId ? 'PATCH' : 'POST', headers: {'Authorization': `token ${CLOUD.token}`}, body: JSON.stringify({public:false,files:{[CLOUD.file]:{content:JSON.stringify(state)}}}) });
-    }
-    async function pull() {
-      const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`,{headers:{'Authorization':`token ${CLOUD.token}`}});
-      const g = await res.json(); const s = JSON.parse(g.files[CLOUD.file].content);
-      if(s){ state = s; render(); }
-    }
+    async function identifyCloud() { const t = document.getElementById('ghTokenInput').value; try { const res = await fetch('https://api.github.com/gists',{headers:{'Authorization':`token ${t}`}}); const gists = await res.json(), f = gists.find(g => g.files[CLOUD.file]); CLOUD.token = t; localStorage.setItem('gh_token_v10', t); if(f){ CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v10', f.id); await pull(); } else await push(); render(); closeModal('syncModal'); } catch(e){ alert('云端失败'); } }
+    async function push() { if(!CLOUD.token) return; const url = CLOUD.gistId ? `https://api.github.com/gists/${CLOUD.gistId}` : 'https://api.github.com/gists'; await fetch(url, { method: CLOUD.gistId ? 'PATCH' : 'POST', headers: {'Authorization': `token ${CLOUD.token}`}, body: JSON.stringify({public:false,files:{[CLOUD.file]:{content:JSON.stringify(state)}}}) }); }
+    async function pull() { const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`,{headers:{'Authorization':`token ${CLOUD.token}`}}); const g = await res.json(), s = JSON.parse(g.files[CLOUD.file].content); if(s) state = s; }
     function syncPush() { if(CLOUD.token&&CLOUD.gistId) push(); }
   </script>
 </body>
