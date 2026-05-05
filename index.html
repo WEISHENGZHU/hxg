@@ -12,14 +12,14 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Hiragino Sans GB", "Microsoft YaHei", "Arial Rounded MT Bold", sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    body { background: var(--bg); color: #2d3436; padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
+    body { background: var(--bg); color: #2d3436; padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 100px; overflow-x: hidden; }
 
-    /* 角色显隐 */
+    /* 身份隔离 */
     .role-child .parent-only { display: none !important; }
     .unapproved-row { opacity: 0.6; border-left: 5px solid var(--gold) !important; }
 
-    /* 奶油组件 */
-    .bubble-card { background: var(--card); padding: 20px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); margin-bottom: 15px; border: none; }
+    /* 奶油圆润卡片 */
+    .bubble-card { background: var(--card); padding: 20px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); margin-bottom: 15px; border: none; overflow: hidden; }
     
     button { 
       padding: 12px 15px; border: none; border-radius: 20px; cursor: pointer; 
@@ -29,6 +29,7 @@
     button:active { transform: scale(0.92); }
     .btn-main { background: var(--primary); color: white; }
     .btn-soft { background: #f0f3f8; color: #636e72; }
+    .btn-sort { background: #e0dcfc; color: var(--purple); font-size: 0.75rem; padding: 6px 12px; border-radius: 15px; }
 
     header { 
       background: linear-gradient(135deg, #ff9ff3 0%, #a29bfe 100%); 
@@ -37,7 +38,20 @@
     }
     .role-tag { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.3); padding: 5px 12px; border-radius: 15px; font-size: 0.7rem; border: 1px solid rgba(255,255,255,0.4); }
 
-    /* 排行榜星球 */
+    /* 🏆 手机端修复：排行榜切换胶囊 */
+    .rank-switcher {
+      display: flex; background: #eee; padding: 5px; border-radius: 20px; margin-bottom: 15px; position: relative; z-index: 10;
+    }
+    .rank-btn {
+      flex: 1; text-align: center; padding: 10px 5px; border-radius: 16px; font-size: 0.8rem;
+      font-weight: 900; color: #999; cursor: pointer; transition: 0.3s;
+      -webkit-user-select: none; user-select: none;
+    }
+    .rank-btn.active {
+      background: white; color: var(--primary); box-shadow: 0 5px 12px rgba(0,0,0,0.1); transform: scale(1.02);
+    }
+
+    /* 星球卡片 */
     .planet-card { display: flex; align-items: center; padding: 12px 18px; border-radius: 25px; background: #fff; border: 2px solid #f1f2f6; margin-bottom: 8px; }
     .rank-1 { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border-color: #ffe066; }
     .planet-avatar { width: 40px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-right: 10px; }
@@ -55,15 +69,14 @@
     .wallet-section { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border: 3px solid #ffec99; text-align: center; }
     .balance-num { font-size: 2.5rem; font-weight: 900; color: #f08c00; }
     
-    /* 习惯列表与排序编辑 */
+    /* 习惯列表 */
     .habit-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 5px; border-bottom: 2px dashed #f1f2f6; }
     .check-btn { width: 48px; height: 48px; border-radius: 18px; border: 4px solid #edf2f7; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; background: #fff; }
     .check-btn.checked-pos { background: var(--success); border-color: #c2fbd7; color: white; }
     .check-btn.checked-neg { background: var(--danger); border-color: #fab1a0; color: white; }
-    .action-group { display: flex; gap: 5px; align-items: center; }
     .btn-circle-tool { width: 35px; height: 35px; border-radius: 12px; background: #f0f3f8; font-size: 0.8rem; padding: 0; }
 
-    /* 底部工具栏 - 极窄优化 */
+    /* 底部工具栏 */
     .footer-bar { 
       position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); 
       backdrop-filter: blur(15px); padding: 8px 10px; border-top: 1px solid #f1f2f6; 
@@ -72,7 +85,6 @@
     .footer-bar button { padding: 8px 2px; font-size: 0.68rem; letter-spacing: -0.5px; border-radius: 15px; }
     .footer-bar button i { display: block; font-size: 1rem; margin-bottom: 2px; }
 
-    /* 模态框 */
     .modal { position: fixed; inset: 0; background: rgba(45, 52, 54, 0.3); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-content { background: white; padding: 25px; border-radius: 35px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
     input, select { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #f1f2f6; border-radius: 18px; font-size: 1rem; outline: none; background: #f8f9fa; }
@@ -89,8 +101,8 @@
       </div>
       <div id="idPhase2" style="display:none;">
         <p style="margin-bottom:15px; font-weight:bold; color:#666;">请点选你的名字：</p>
-        <div id="childIdList" style="display:flex; flex-direction:column; gap:8px;"></div>
-        <button onclick="backToPhase1()" style="margin-top:15px; background:none; color:var(--primary); font-weight:bold;">返回上一步</button>
+        <div id="childIdList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <button onclick="backToPhase1()" style="margin-top:15px; background:none; border:none; color:var(--primary); font-weight:bold;">返回上一步</button>
       </div>
     </div>
   </div>
@@ -100,16 +112,19 @@
     <div id="currentRoleTag" class="role-tag" onclick="switchRoleAction()">身份: 孩子</div>
   </header>
 
-  <!-- 排行榜 -->
+  <!-- 🏆 荣誉星球排行榜修复版 -->
   <section class="bubble-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <strong style="font-size:1rem; color:#636e72;">🏆 荣誉星球排行榜</strong>
     </div>
-    <div style="display:flex; background:#f1f2f6; padding:4px; border-radius:15px; margin-bottom:12px; gap:4px;">
-      <div class="switch-item" id="sw-week" onclick="setRankType('week')" style="flex:1; text-align:center; padding:6px; font-size:0.75rem; border-radius:12px; cursor:pointer; font-weight:900;">📅本周</div>
-      <div class="switch-item active" id="sw-month" onclick="setRankType('month')" style="flex:1; text-align:center; padding:6px; font-size:0.75rem; border-radius:12px; cursor:pointer; font-weight:900;">🌙本月</div>
-      <div class="switch-item" id="sw-total" onclick="setRankType('total')" style="flex:1; text-align:center; padding:6px; font-size:0.75rem; border-radius:12px; cursor:pointer; font-weight:900;">🌟总分</div>
+    
+    <!-- 优化后的切换器 -->
+    <div class="rank-switcher">
+      <div class="rank-btn" id="sw-week" onclick="handleRankSwitch('week')">📅 本周</div>
+      <div class="rank-btn active" id="sw-month" onclick="handleRankSwitch('month')">🌙 本月</div>
+      <div class="rank-btn" id="sw-total" onclick="handleRankSwitch('total')">🌟 总分</div>
     </div>
+
     <div class="planet-rank-container" id="leaderboardArea"></div>
   </section>
 
@@ -159,7 +174,6 @@
     <div id="approvalList" style="margin-top:10px;"></div>
   </section>
 
-  <!-- 优化底部 -->
   <div class="footer-bar parent-only">
     <button class="btn-soft" onclick="parentSecurityAuth(()=>openModal('addChildModal'))"><i>👶</i>成员</button>
     <button class="btn-soft" onclick="openModal('syncModal')"><i>☁️</i>云同步</button>
@@ -168,22 +182,19 @@
   </div>
 
   <!-- --- 弹窗集合 --- -->
-  
-  <!-- 同步设置（已优化） -->
   <div class="modal" id="syncModal"><div class="modal-content">
     <h3 style="color:var(--purple); margin-bottom:10px;">云同步设置 ☁️</h3>
     <p id="syncStatusHint" style="font-size:0.75rem; color:var(--success); margin-bottom:10px; font-weight:bold;"></p>
     <input type="password" id="ghTokenInput" placeholder="在此粘贴 Token (ghp_...)" />
     <div style="display:flex; gap:8px; margin-bottom:10px;">
       <button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="flex:1; background:#24292e; color:white; font-size:0.6rem;">一键获取</button>
-      <button onclick="alert('1.登录GitHub\n2.点Generate token\n3.复制ghp_开头代码回到这里粘贴\n4.点下方[连接]')" style="flex:1; background:var(--primary); color:white; font-size:0.6rem;">获取教程</button>
+      <button onclick="alert('教程：获取ghp_开头代码回到这里粘贴连接。')" style="flex:1; background:var(--primary); color:white; font-size:0.6rem;">获取教程</button>
     </div>
     <button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%; background:var(--purple); margin-bottom:8px;">连接并同步</button>
-    <button id="clearSyncBtn" onclick="clearSyncData()" class="btn-soft" style="width:100%; color:var(--danger); display:none;">清除已有绑定</button>
+    <button id="clearSyncBtn" onclick="clearSyncData()" class="btn-soft" style="width:100%; color:var(--danger); display:none; margin-top:5px;">清除已有绑定</button>
     <button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px; background:none; color:#999;">关闭</button>
   </div></div>
 
-  <!-- 编辑任务（新增） -->
   <div class="modal" id="editHabitModal"><div class="modal-content">
     <h3>编辑任务 ✏️</h3>
     <input type="text" id="editHabitName" placeholder="任务名称" />
@@ -194,14 +205,13 @@
     </div>
   </div></div>
 
-  <!-- 其他弹窗逻辑保持 -->
-  <div class="modal" id="editChildModal"><div class="modal-content"><h3>修改宝贝名字 ✏️</h3><input type="text" id="editChildNameInput"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('editChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmEditChildName()" class="btn-main" style="flex:1;">确认</button></div></div></div>
-  <div class="modal" id="moneyModal"><div class="modal-content"><h3>记账收支 📝</h3><select id="moneyType"><option value="income">➕ 存入（零花钱/奖励）</option><option value="expense">➖ 支出（买东西）</option></select><input type="number" id="moneyAmount" placeholder="金额"/><input type="text" id="moneyNote" placeholder="备注"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('moneyModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmMoney()" class="btn-main" style="flex:1;background:var(--gold);">登记</button></div></div></div>
+  <div class="modal" id="editChildModal"><div class="modal-content"><h3>更名 ✏️</h3><input type="text" id="editChildNameInput"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('editChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmEditChildName()" class="btn-main" style="flex:1;">确认</button></div></div></div>
+  <div class="modal" id="moneyModal"><div class="modal-content"><h3>记账 📝</h3><select id="moneyType"><option value="income">➕ 存入奖励</option><option value="expense">➖ 支出消费</option></select><input type="number" id="moneyAmount" placeholder="金额"/><input type="text" id="moneyNote" placeholder="备注"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('moneyModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmMoney()" class="btn-main" style="flex:1;background:var(--gold);">登记</button></div></div></div>
   <div class="modal" id="addHabitModal"><div class="modal-content"><h3>新任务</h3><input type="text" id="newHabitName" placeholder="名称"/><input type="number" id="newHabitPts" placeholder="分值"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('addHabitModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddHabit()" class="btn-main" style="flex:1;">保存</button></div></div></div>
   <div class="modal" id="addChildModal"><div class="modal-content"><h3>新成员</h3><input type="text" id="newChildName" placeholder="姓名"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('addChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddChild()" class="btn-main" style="flex:1;">确认</button></div></div></div>
-  <div class="modal" id="pwdModal"><div class="modal-content"><h3 id="pwdTitle">安全验证</h3><input type="password" id="pwdInput" placeholder="密码"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('pwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAuth()" class="btn-main" style="flex:1;">验证</button></div><p onclick="openModal('recoveryModal')" style="text-align:center;font-size:0.7rem;color:#bbb;margin-top:15px;text-decoration:underline;">忘记密码？重置</p></div></div>
-  <div class="modal" id="changePwdModal"><div class="modal-content"><h3>修改密码</h3><input type="password" id="oldPwdField" placeholder="原密码"/><input type="password" id="newPwdField1" placeholder="新密码"/><input type="password" id="newPwdField2" placeholder="确认新密码"/><div style="display:flex;gap:10px;margin-top:10px;"><button onclick="closeModal('changePwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmChangePwd()" class="btn-main" style="flex:1;">保存</button></div></div></div>
-  <div class="modal" id="recoveryModal"><div class="modal-content"><h3>系统重置</h3><input type="password" id="recoveryField" placeholder="验证信息"/><button onclick="handleRecovery()" class="btn-main" style="width:100%; background:var(--danger);">重置</button></div></div>
+  <div class="modal" id="pwdModal"><div class="modal-content"><h3 id="pwdTitle">安全验证</h3><input type="password" id="pwdInput" placeholder="密码"/><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('pwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAuth()" class="btn-main" style="flex:1;">验证</button></div><p onclick="openModal('recoveryModal')" style="text-align:center;font-size:0.7rem;color:#bbb;margin-top:15px;text-decoration:underline;">忘记密码？重置</p></div></div>
+  <div class="modal" id="changePwdModal"><div class="modal-content"><h3>修改密码</h3><input type="password" id="oldPwdField" placeholder="原密码"/><input type="password" id="newPwdField1" placeholder="新密码"/><input type="password" id="newPwdField2" placeholder="确认新密码"/><div style="display:flex;gap:12px;margin-top:10px;"><button onclick="closeModal('changePwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmChangePwd()" class="btn-main" style="flex:1;">保存</button></div></div></div>
+  <div class="modal" id="recoveryModal"><div class="modal-content"><h3>系统重置</h3><input type="password" id="recoveryField" placeholder="验证代码"/><button onclick="handleRecovery()" class="btn-main" style="width:100%; background:var(--danger);">重置</button></div></div>
 
   <script>
     const DEFAULT_HABITS = [{name:'📖 认真阅读',pts:3},{name:'✍️ 完成作业',pts:3},{name:'🏠 整理内务',pts:2},{name:'🛌 准时休息',pts:2},{name:'📺 电子超时',pts:-5},{name:'😤 乱发脾气',pts:-5}];
@@ -221,10 +231,8 @@
       const saved = localStorage.getItem('habit_v10_state');
       if (saved) state = JSON.parse(saved);
       if (!state.userRole) openModal('identityModal'); else applyRole(state.userRole);
-      
-      // 持久同步检查
       if (CLOUD.token && CLOUD.gistId) {
-        document.getElementById('syncStatusHint').textContent = "✅ 云同步已固定连接";
+        document.getElementById('syncStatusHint').textContent = "✅ 云同步已连接";
         document.getElementById('clearSyncBtn').style.display = 'block';
         await pull();
       }
@@ -233,10 +241,9 @@
 
     function saveState() { localStorage.setItem('habit_v10_state', JSON.stringify(state)); }
 
-    // --- 弹窗拦截（自动清空/排除逻辑） ---
+    // --- 弹窗逻辑 ---
     function openModal(id) {
         const m = document.getElementById(id);
-        // 排除同步弹窗的Token框，不自动清空已保存的记录
         if (id === 'syncModal') {
           document.getElementById('ghTokenInput').value = CLOUD.token;
         } else if (id !== 'editHabitModal' && id !== 'editChildModal') {
@@ -246,6 +253,18 @@
         m.style.display = 'flex';
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // --- 榜单切换修复 ---
+    function handleRankSwitch(t) {
+        console.log("Switching to:", t);
+        rankType = t;
+        // 更新 UI 样式
+        document.querySelectorAll('.rank-btn').forEach(el => {
+            el.classList.toggle('active', el.id === 'sw-' + t);
+        });
+        // 强制重新渲染排行榜
+        renderLeaderboard();
+    }
 
     // --- 任务编辑 ---
     function openEditHabit(idx) {
@@ -266,50 +285,33 @@
         }
     }
 
-    // --- 同步逻辑优化 ---
+    // --- 同步逻辑 ---
     async function identifyCloud() {
       const t = document.getElementById('ghTokenInput').value.trim();
-      if (!t.startsWith('ghp_')) return alert('Token格式似乎不对');
-      const btn = document.getElementById('identifyBtn');
-      btn.textContent = "连接中..."; btn.disabled = true;
+      if (!t.startsWith('ghp_')) return alert('Token格式不对');
       try {
         const res = await fetch('https://api.github.com/gists',{headers:{'Authorization':`token ${t}`}});
         const gists = await res.json();
-        if(!Array.isArray(gists)) throw new Error();
         const f = gists.find(g => g.files[CLOUD.file]);
-        
         CLOUD.token = t; localStorage.setItem('gh_token_v10', t);
-        if(f){ 
-            CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v10', f.id); 
-            if(confirm('云端发现备份，是否覆盖本地？')) await pull(); 
-        } else { await push(); }
-        
-        document.getElementById('syncStatusHint').textContent = "✅ 云同步已固定连接";
-        document.getElementById('clearSyncBtn').style.display = 'block';
-        alert('连接成功并已固定记录');
-        closeModal('syncModal');
-      } catch(e){ alert('云连接失败，请检查Token'); }
-      finally { btn.textContent = "连接并同步"; btn.disabled = false; }
+        if(f){ CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v10', f.id); await pull(); } else { await push(); }
+        alert('连接成功');
+        location.reload(); // 刷新以锁定状态
+      } catch(e){ alert('云连接失败'); }
     }
-
     function clearSyncData() {
-        if(confirm('确定要断开云同步并清除绑定的Token吗？')) {
-            localStorage.removeItem('gh_token_v10');
-            localStorage.removeItem('gh_gist_id_v10');
-            CLOUD.token = ''; CLOUD.gistId = '';
-            document.getElementById('syncStatusHint').textContent = "";
-            document.getElementById('clearSyncBtn').style.display = 'none';
-            document.getElementById('ghTokenInput').value = '';
-            alert('已解除绑定');
+        if(confirm('确定断开绑定吗？')) {
+            localStorage.removeItem('gh_token_v10'); localStorage.removeItem('gh_gist_id_v10');
+            location.reload();
         }
     }
 
-    // --- 身份与验证逻辑 ---
+    // --- 身份与验证 ---
     function showChildSelector() {
         document.getElementById('idPhase1').style.display = 'none';
         document.getElementById('idPhase2').style.display = 'block';
         const list = document.getElementById('childIdList');
-        list.innerHTML = state.children.map(c => `<button class="btn-soft" onclick="confirmRoleChoice('child', '${c.id}')" style="width:100%;">🧒 ${c.name}</button>`).join('');
+        list.innerHTML = state.children.map(c => `<button class="btn-soft" onclick="confirmRoleChoice('child', '${c.id}')" style="width:100%; border-radius:20px;">🧒 ${c.name}</button>`).join('');
     }
     function backToPhase1() { document.getElementById('idPhase1').style.display = 'block'; document.getElementById('idPhase2').style.display = 'none'; }
     function confirmRoleChoice(role, childId) {
@@ -321,13 +323,13 @@
       document.getElementById('currentRoleTag').textContent = '身份: ' + (role==='parent'?'家长':'孩子');
     }
     function switchRoleAction() {
-      if (state.userRole === 'child') { document.getElementById('pwdTitle').textContent="切换为家长模式"; parentSecurityAuth(()=>selectRole('parent')); }
-      else if(confirm('切换到孩子模式？')) { openModal('identityModal'); backToPhase1(); }
+      if (state.userRole === 'child') { document.getElementById('pwdTitle').textContent="家长验证"; parentSecurityAuth(()=>selectRole('parent')); }
+      else { openModal('identityModal'); backToPhase1(); }
     }
     function selectRole(role) { state.userRole = role; applyRole(role); render(); }
     function switchChild(id) {
         if (id === activeId) return;
-        if (state.userRole === 'child') { document.getElementById('pwdTitle').textContent="切换成员需家长验证"; parentSecurityAuth(()=>{ activeId=id; render(); }); }
+        if (state.userRole === 'child') { document.getElementById('pwdTitle').textContent="切换成员需验证"; parentSecurityAuth(()=>{ activeId=id; render(); }); }
         else { activeId=id; render(); }
     }
     function parentSecurityAuth(cb) { authCallback = cb; openModal('pwdModal'); }
@@ -336,8 +338,6 @@
       if (input === state.pwd || input === '911205') { closeModal('pwdModal'); if (authCallback) { authCallback(); authCallback = null; } }
       else alert('验证失败');
     }
-
-    // --- 修改名字 ---
     function promptEditChildName(id) { editingChildId = id; const child = state.children.find(c => c.id === id); openModal('editChildModal'); document.getElementById('editChildNameInput').value = child.name; }
     function confirmEditChildName() { const n = document.getElementById('editChildNameInput').value.trim(); if(n){ state.children.find(c=>c.id===editingChildId).name = n; render(); syncPush(); closeModal('editChildModal'); } }
 
@@ -373,24 +373,37 @@
       renderLeaderboard(); renderWallet(); calcScores(); renderApprovals(); saveState();
     }
 
-    // --- 逻辑函数 ---
-    function setRankType(t) { rankType = t; document.querySelectorAll('.switch-item').forEach(el => el.classList.toggle('active', el.id === 'sw-' + t)); renderLeaderboard(); }
     function toggleSortMode() { isSorting = !isSorting; document.getElementById('sortBtn').textContent = isSorting ? '✅ 完成' : '🔃 排序/编辑'; render(); }
     function moveHabit(idx, dir) { const c = state.children.find(c => c.id === activeId); if (dir===-1 && idx>0) [c.habits[idx], c.habits[idx-1]] = [c.habits[idx-1], c.habits[idx]]; else if (dir===1 && idx<c.habits.length-1) [c.habits[idx], c.habits[idx+1]] = [c.habits[idx+1], c.habits[idx]]; render(); syncPush(); }
     function toggleHabit(idx) { if (isSorting) return; if (!state.checks[activeId]) state.checks[activeId] = {}; if (!state.checks[activeId][selectedDate]) state.checks[activeId][selectedDate] = {}; if (state.checks[activeId][selectedDate][idx]) delete state.checks[activeId][selectedDate][idx]; else state.checks[activeId][selectedDate][idx] = { approved: (state.userRole === 'parent') }; render(); syncPush(); }
     function confirmMoney() { const a = parseFloat(document.getElementById('moneyAmount').value); if (!a) return; if (!state.ledgers[activeId]) state.ledgers[activeId] = []; state.ledgers[activeId].push({ date: selectedDate, amount: a, type: document.getElementById('moneyType').value, note: document.getElementById('moneyNote').value || '记账', approved: (state.userRole === 'parent') }); closeModal('moneyModal'); render(); syncPush(); }
     function renderWallet() { let bal = 0; (state.ledgers[activeId]||[]).forEach(t => { if(t.approved) bal += (t.type==='income'?1:-1)*t.amount; }); document.getElementById('balanceDisplay').textContent = bal.toFixed(2); }
-    function renderApprovals() { if (state.userRole !== 'parent') return; const area = document.getElementById('approvalList'); let html = ''; Object.keys(state.checks).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; Object.keys(state.checks[cId]).forEach(d => { Object.keys(state.checks[cId][d]).forEach(hIdx => { if(!state.checks[cId][d][hIdx].approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[打卡] ${cName}: ${state.children.find(x=>x.id===cId).habits[hIdx].name}</span><button onclick="approveAction('check','${cId}','${d}',${hIdx})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">通过</button></div>`; }); }); }); Object.keys(state.ledgers).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; state.ledgers[cId].forEach((t, i) => { if(!t.approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[账本] ${cName}: ${t.amount}</span><button onclick="approveAction('ledger','${cId}',${i})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">通过</button></div>`; }); }); document.getElementById('approvalSection').style.display = html ? 'block' : 'none'; area.innerHTML = html; }
+    function renderApprovals() { if (state.userRole !== 'parent') return; const area = document.getElementById('approvalList'); let html = ''; Object.keys(state.checks).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; Object.keys(state.checks[cId]).forEach(d => { Object.keys(state.checks[cId][d]).forEach(hIdx => { if(!state.checks[cId][d][hIdx].approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[打卡] ${cName}: ${state.children.find(x=>x.id===cId).habits[hIdx].name}</span><button onclick="approveAction('check','${cId}','${d}',${hIdx})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">通过</button></div>`; }); }); }); Object.keys(state.ledgers).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; state.ledgers[cId].forEach((t, i) => { if(!t.approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[账本] ${cName}: ${t.amount}</span><button onclick="approveAction('ledger','${cId}',${i})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">确认</button></div>`; }); }); document.getElementById('approvalSection').style.display = html ? 'block' : 'none'; area.innerHTML = html; }
     function approveAction(t, c, p1, p2) { if (t==='check') state.checks[c][p1][p2].approved = true; else state.ledgers[c][p1].approved = true; render(); syncPush(); }
     function changeDate(n) { let d = new Date(selectedDate); d.setDate(d.getDate()+n); selectedDate = d.toISOString().split('T')[0]; render(); }
-    function renderLeaderboard() { const ranks = state.children.map(c => { let s = 0; const cks = state.checks[c.id] || {}; const d = new Date(selectedDate), day = d.getDay()||7, mon = new Date(d); mon.setDate(d.getDate()-day+1); const sun = new Date(d); sun.setDate(d.getDate()-day+7); const wS = mon.toISOString().split('T')[0], wE = sun.toISOString().split('T')[0], curM = selectedDate.substring(0,7); Object.keys(cks).forEach(dt => { let match = (rankType==='total' || (rankType==='month'&&dt.startsWith(curM)) || (rankType==='week'&&dt>=wS&&dt<=wE)); if(match) Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && c.habits[i]) s += c.habits[i].pts; }); }); return { name: c.name, score: s }; }).sort((a,b) => b.score - a.score); document.getElementById('leaderboardArea').innerHTML = ranks.map((r, i) => `<div class="planet-card ${i < 3 ? `rank-${i+1}` : ''}"><div class="planet-info"><div class="planet-avatar">${['🥇','🥈','🥉'][i] || '⭐'}</div><div><div class="planet-name">${r.name}</div><div class="rank-badge">${i+1}号星球</div></div></div><div class="planet-score">${r.score}</div></div>`).join(''); }
+    
+    function renderLeaderboard() { 
+      const ranks = state.children.map(c => { 
+        let s = 0; const cks = state.checks[c.id] || {}; 
+        const d = new Date(selectedDate), day = d.getDay()||7, mon = new Date(d); mon.setDate(d.getDate()-day+1); 
+        const sun = new Date(d); sun.setDate(d.getDate()-day+7); 
+        const wS = mon.toISOString().split('T')[0], wE = sun.toISOString().split('T')[0], curM = selectedDate.substring(0,7); 
+        Object.keys(cks).forEach(dt => { 
+          let match = (rankType==='total' || (rankType==='month'&&dt.startsWith(curM)) || (rankType==='week'&&dt>=wS&&dt<=wE)); 
+          if(match) Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && c.habits[i]) s += c.habits[i].pts; }); 
+        }); 
+        return { name: c.name, score: s }; 
+      }).sort((a,b) => b.score - a.score); 
+      document.getElementById('leaderboardArea').innerHTML = ranks.map((r, i) => `<div class="planet-card ${i < 3 ? `rank-${i+1}` : ''}"><div class="planet-info"><div class="planet-avatar">${['🥇','🥈','🥉'][i] || '⭐'}</div><div><div class="planet-name">${r.name}</div><div class="rank-badge">${i+1}号星球</div></div></div><div class="planet-score">${r.score}</div></div>`).join(''); 
+    }
+    
     function calcScores() { let d=0, m=0; const curM = selectedDate.substring(0,7), cks = state.checks[activeId]||{}, hbs = state.children.find(c=>c.id===activeId).habits; Object.keys(cks).forEach(dt => { let ds = 0; Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && hbs[i]) ds += hbs[i].pts; }); if(dt===selectedDate) d = ds; if(dt.startsWith(curM)) m += ds; }); document.getElementById('dayScore').textContent = d; document.getElementById('monthScore').textContent = m; }
     function handleCurrencyEdit() { const s = prompt('货币符号', state.settings.currency); if(s){state.settings.currency=s; render(); syncPush();}}
-    function confirmChangePwd() { const o = document.getElementById('oldPwdField').value, n1 = document.getElementById('newPwdField1').value, n2 = document.getElementById('newPwdField2').value; if(o!==state.pwd) return alert('原密码错误'); if(n1!==n2) return alert('确认新密码输入不一致'); state.pwd=n1; saveState(); alert('成功'); closeModal('changePwdModal'); }
-    function handleRecovery() { if(document.getElementById('recoveryField').value==='911205'){state.pwd='123456'; saveState(); alert('已重置'); closeModal('recoveryModal');}}
+    function confirmChangePwd() { const o = document.getElementById('oldPwdField').value, n1 = document.getElementById('newPwdField1').value, n2 = document.getElementById('newPwdField2').value; if(o!==state.pwd) return alert('原密码错误'); if(n1!==n2) return alert('输入不一致'); state.pwd=n1; saveState(); alert('成功'); closeModal('changePwdModal'); }
+    function handleRecovery() { if(document.getElementById('recoveryField').value==='911205'){state.pwd='123456'; saveState(); alert('重置成功'); closeModal('recoveryModal');}}
     function confirmAddChild() { const n = document.getElementById('newChildName').value; if(n){ state.children.push({id:Date.now().toString(),name:n,habits:[...DEFAULT_HABITS]}); closeModal('addChildModal'); render(); syncPush(); } }
     function confirmAddHabit() { const n = document.getElementById('newHabitName').value, p = parseInt(document.getElementById('newHabitPts').value); if(n&&!isNaN(p)){ state.children.find(c=>c.id===activeId).habits.push({name:n,pts:p}); closeModal('addHabitModal'); render(); syncPush(); } }
-    function delHabit(i) { if(confirm('确定删除该任务及其所有打卡积分记录吗？')) { state.children.find(c=>c.id===activeId).habits.splice(i,1); render(); syncPush(); } }
+    function delHabit(i) { if(confirm('删除任务吗？')) { state.children.find(c=>c.id===activeId).habits.splice(i,1); render(); syncPush(); } }
 
     async function push() { if(!CLOUD.token || !CLOUD.gistId) return; const url = `https://api.github.com/gists/${CLOUD.gistId}`; await fetch(url, { method: 'PATCH', headers: {'Authorization': `token ${CLOUD.token}`}, body: JSON.stringify({public:false,files:{[CLOUD.file]:{content:JSON.stringify(state)}}}) }); }
     async function pull() { const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`,{headers:{'Authorization':`token ${CLOUD.token}`}}); const g = await res.json(); if(g.files && g.files[CLOUD.file]){ state = JSON.parse(g.files[CLOUD.file].content); render(); } }
