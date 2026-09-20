@@ -1,320 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>小脚印 · 萌萌星球助手</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>儿童好习惯积分系统</title>
   <style>
-    :root {
-      --primary: #74b9ff; --success: #55efc4; --danger: #ff7675;
-      --warning: #ffeaa7; --purple: #a29bfe; --gold: #fab1a0;
-      --bg: #fdfaf5; --card: #ffffff;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Hiragino Sans GB", "Microsoft YaHei", "Arial Rounded MT Bold", sans-serif; -webkit-tap-highlight-color: transparent; }
-    
-    body { background: var(--bg); color: #2d3436; padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
-
-    /* 身份权限控制 */
-    .role-child .parent-only, .role-child .edit-btn-inline { display: none !important; }
-    .unapproved-row { opacity: 0.6; border-left: 5px solid var(--gold) !important; }
-
-    /* 奶油圆润卡片 */
-    .bubble-card { background: var(--card); padding: 22px; border-radius: 35px; box-shadow: 0 12px 30px rgba(0,0,0,0.03); margin-bottom: 18px; border: none; }
-    
-    button { 
-      padding: 12px 18px; border: none; border-radius: 25px; cursor: pointer; 
-      font-weight: 800; transition: all 0.2s; 
-      box-shadow: 0 5px 12px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center;
-    }
-    button:active { transform: scale(0.95); }
-    .btn-main { background: var(--primary); color: white; }
-    .btn-soft { background: #f0f3f8; color: #636e72; }
-    .btn-sort { background: #e0dcfc; color: var(--purple); font-size: 0.75rem; padding: 6px 12px; border-radius: 15px; }
-
-    header { 
-      background: linear-gradient(135deg, #ff9ff3 0%, #a29bfe 100%); 
-      padding: 30px 20px; border-radius: 40px; color: white; margin-bottom: 20px; 
-      position: relative; box-shadow: 0 15px 25px rgba(162, 155, 254, 0.3);
-    }
-    .role-tag { 
-      position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.3); 
-      padding: 6px 16px; border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.4);
-      cursor: pointer;
-    }
-
-    /* 排行榜 */
-    .switch-container { display: flex; background: #f1f2f6; padding: 6px; border-radius: 20px; margin-bottom: 15px; gap: 4px; }
-    .switch-item { flex: 1; text-align: center; padding: 8px 5px; border-radius: 16px; font-size: 0.8rem; font-weight: 900; color: #b2bec3; cursor: pointer; transition: 0.3s; }
-    .switch-item.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-    .planet-card { display: flex; align-items: center; padding: 15px 20px; border-radius: 25px; background: #fff; border: 2px solid #f1f2f6; margin-bottom: 10px; }
-    .rank-1 { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border-color: #ffe066; }
-    .planet-avatar { width: 45px; height: 45px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 15px; }
-    .planet-score { font-weight: 900; font-size: 1.3rem; color: var(--primary); margin-left: auto;}
-
-    /* 名字导航 */
-    .child-name-list { display: flex; gap: 12px; justify-content: center; overflow-x: auto; padding: 15px 5px; scrollbar-width: none; }
-    .name-tab-wrap { position: relative; }
-    .name-tab { padding: 10px 22px; background: #f8f9fa; border-radius: 25px; cursor: pointer; white-space: nowrap; font-size: 1.1rem; font-weight: 900; color: #b2bec3; transition: 0.3s; border: 3px solid transparent; }
-    .name-tab.active { background: #fff; color: var(--primary); border-color: #dff9fb; box-shadow: 0 8px 15px rgba(116, 185, 255, 0.25); transform: scale(1.1); }
-    .edit-name-btn { position: absolute; top: -5px; right: -5px; background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; cursor: pointer; }
-
-    /* 小金库 */
-    .wallet-section { background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%); border: 3px solid #ffec99; text-align: center; }
-    .balance-num { font-size: 2.8rem; font-weight: 900; color: #f08c00; }
-    
-    /* 习惯列表 */
-    .habit-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 5px; border-bottom: 2px dashed #f1f2f6; }
-    .habit-name-box { flex: 1; cursor: pointer; }
-    .edit-btn-inline { color: var(--primary); font-size: 0.8rem; margin-left: 5px; }
-    .check-btn { width: 52px; height: 52px; border-radius: 22px; border: 4px solid #edf2f7; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; background: #fff; }
-    .check-btn.checked-pos { background: var(--success); border-color: #c2fbd7; color: white; }
-    .check-btn.checked-neg { background: var(--danger); border-color: #fab1a0; color: white; }
-    .sort-controls { display: flex; gap: 5px; }
-    .btn-arrow { padding: 8px; border-radius: 12px; background: #f0f3f8; font-size: 0.9rem; width: 40px; height: 40px; }
-
-    /* 底部导航 */
-    .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 10px 15px; border-top: 1px solid #f1f2f6; border-radius: 30px 30px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; z-index: 900; }
-    .footer-bar button { padding: 10px 2px; border-radius: 18px; font-size: 0.72rem; white-space: nowrap; font-weight: 900; box-shadow: none; background: transparent; }
-    .footer-bar button i { display: block; font-style: normal; margin-bottom: 2px; font-size: 1.2rem; }
-
-    /* 模态框 */
-    .modal { position: fixed; inset: 0; background: rgba(45, 52, 54, 0.4); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: white; padding: 30px; border-radius: 40px; width: 100%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.15); animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    input, select { width: 100%; padding: 16px; margin: 10px 0; border: 3px solid #f1f2f6; border-radius: 22px; font-size: 1rem; outline: none; background: #f8f9fa; }
+    :root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#253246;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.shell{max-width:1160px;margin:auto;padding:32px 20px 70px}header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px}h1{margin:0;font-size:30px}h2{margin:0 0 16px;font-size:19px}h3{margin:0;font-size:17px}.muted{color:#718097;font-size:13px}.top-actions,.row,.tabs{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:0;border-radius:10px;background:#4868e8;color:white;padding:10px 14px;font-weight:600}.btn.secondary{background:#e9edfa;color:#344ab2}.btn.ghost{background:#f1f3f8;color:#526076}.btn.danger{background:#fff1f0;color:#bd4a46}.btn.small{padding:7px 10px;font-size:13px}.grid{display:grid;grid-template-columns:1.65fr 1fr;gap:18px}.card{background:white;border:1px solid #e8edf5;border-radius:17px;padding:20px;box-shadow:0 8px 28px #26395d08;margin-bottom:18px}.child-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}.child{border:1px solid #e6ebf5;border-radius:13px;padding:15px;background:#fcfdff}.child-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.avatar{display:inline-grid;place-items:center;width:35px;height:35px;border-radius:11px;background:#eaf0ff;color:#4868e8;font-weight:700;margin-right:8px}.scores{display:flex;gap:8px;margin:14px 0}.score{flex:1;background:#f2f6ff;padding:10px;border-radius:10px}.score.bad{background:#fff4ef}.score strong{display:block;font-size:22px}.score span{font-size:12px;color:#657389}.wallet-summary{border-radius:10px;background:#edf8f1;padding:10px;margin-bottom:12px}.wallet-summary strong{display:block;color:#237449}.wallet-summary span{font-size:12px;color:#617b6c}.child-actions{display:flex;gap:7px;flex-wrap:wrap}.money-actions{margin-top:8px}.rank{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #edf0f5}.rank:last-child{border-bottom:0}.rank-num{color:#5067db;font-weight:800;width:25px}.rank-name{flex:1;font-weight:600}.rank-score{color:#4868e8;font-weight:800}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}.section-title h2{margin:0}.tabs{margin-bottom:15px}.tab{background:#eef1f8;border:0;border-radius:9px;padding:8px 13px;color:#5c6a80}.tab.active{background:#dfe7ff;color:#3553ce;font-weight:700}.rule-list,.history{display:grid;gap:9px}.rule,.history-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #edf0f5;border-radius:10px;padding:11px 12px}.rule-title{font-weight:600}.pill{border-radius:30px;background:#eff3ff;color:#405bce;padding:4px 9px;font-size:12px;white-space:nowrap}.pill.bad{background:#fff0e9;color:#b85d36}.empty{color:#8793a4;text-align:center;padding:25px 10px}dialog{border:0;border-radius:18px;box-shadow:0 20px 80px #1f2e4a40;width:min(440px,calc(100vw - 32px));padding:24px}dialog::backdrop{background:#14213b88}dialog h2{margin:0 0 17px}label{display:block;color:#58667d;font-size:13px;font-weight:600;margin:14px 0 6px}input,select{width:100%;padding:11px;border:1px solid #d9e0eb;border-radius:9px;background:white;color:#253246}dialog .row{justify-content:flex-end;margin-top:22px}.notice{font-size:13px;color:#657389;line-height:1.6;margin-top:8px}.footer{margin-top:12px;text-align:center;color:#8b96a5;font-size:12px}@media(max-width:760px){.shell{padding:20px 13px 45px}header{align-items:flex-start;flex-direction:column}h1{font-size:24px}.grid{grid-template-columns:1fr}.card{padding:16px}.top-actions{width:100%}.top-actions .btn{flex:1}.child-list{grid-template-columns:1fr}.child-actions .btn{min-height:42px}.tabs{display:grid;grid-template-columns:repeat(2,1fr)}.tab{min-height:42px}dialog{max-height:90dvh;overflow:auto}}@media(max-width:380px){.section-title{align-items:flex-start;flex-direction:column}.scores{flex-direction:column}}
+    .sync-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.sync-actions .btn{flex:1;white-space:nowrap}#syncStatus{min-height:20px;font-weight:600}#syncDialog{width:min(510px,calc(100vw - 32px))}#syncDialog .notice{line-height:1.65}.remember{display:flex;align-items:center;gap:8px;line-height:1.5;color:#33415b}.remember input{width:auto;flex:none}.action-group{padding:12px;border-radius:12px;margin-top:12px}.habit-group{background:#f0f3ff;border:1px solid #dce5ff}.wallet-group{background:#ecf8f1;border:1px solid #d5ecd9}.group-label{font-size:13px;font-weight:800;letter-spacing:.04em;margin-bottom:10px;color:#344fbb}.wallet-group .group-label{color:#247448}.wallet-group .wallet-summary{padding:0;margin-bottom:10px}.wallet-btn{background:#dbf0e3;color:#1e6b43}.money-actions{margin:0}@media(max-width:760px){.top-actions{display:grid;grid-template-columns:repeat(2,1fr)}.sync-actions{flex-direction:column}}
+    .calendar-nav{display:flex;align-items:center;gap:8px}.calendar-nav strong{min-width:82px;text-align:center;font-size:14px}.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.calendar-weekdays span{text-align:center;color:#8b96a6;font-size:12px;padding:4px}.calendar-day{border:1px solid transparent;background:#f6f8fc;border-radius:10px;min-height:58px;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;color:#33415b}.calendar-day:hover{border-color:#aebff5}.calendar-day.today{border-color:#97aae9}.calendar-day.selected{background:#4868e8;color:#fff}.calendar-day.outside{visibility:hidden}.calendar-dots{display:flex;gap:3px;min-height:6px}.calendar-dot{width:6px;height:6px;border-radius:50%;background:#5574e6}.calendar-dot.money{background:#36a86d}.calendar-day.selected .calendar-dot{background:#fff}.calendar-selected{margin:18px 0 11px}.day-record-tag{font-size:12px;color:#66768e;margin-top:2px}.day-record-amount{white-space:nowrap}@media(max-width:760px){.calendar-day{min-height:48px}.calendar-nav{gap:4px}.calendar-nav .btn{padding:6px 8px}.calendar-nav strong{min-width:72px}.calendar-weekdays,.calendar-days{gap:3px}}@media(max-width:420px){.calendar-nav{width:100%;justify-content:space-between}.calendar-day{min-height:42px;padding:3px;font-size:13px}}
   </style>
 </head>
-<body class="role-child">
-
-  <div class="modal" id="identityModal" style="display:none;">
-    <div class="modal-content" style="text-align:center;">
-      <h2 style="margin-bottom:25px; color:var(--primary);">请选择身份 ✨</h2>
-      <div id="idPhase1">
-        <button class="btn-main" onclick="handleParentChoice()" style="height:80px; width:100%; margin-bottom:15px; border-radius:30px; font-size:1.1rem;">我是家长 👨‍👩‍👧</button>
-        <button class="btn-soft" onclick="showChildSelector()" style="height:80px; width:100%; border-radius:30px; font-size:1.1rem;">我是小朋友 🧒</button>
-      </div>
-      <div id="idPhase2" style="display:none;">
-        <p style="margin-bottom:15px; font-weight:bold; color:#666;">宝贝，你叫什么名字？</p>
-        <div id="childIdList" style="display:flex; flex-direction:column; gap:12px;"></div>
-        <button onclick="backToPhase1()" style="margin-top:20px; background:none; border:none; color:var(--primary); font-weight:bold; font-size:0.9rem;">返回上一步</button>
-      </div>
-    </div>
-  </div>
-
-  <header>
-    <h1 style="font-size:1.4rem;">小脚印成长手记 🐾</h1>
-    <div id="currentRoleTag" class="role-tag" onclick="switchRoleAction()">身份: 孩子</div>
-  </header>
-
-  <section class="bubble-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-      <strong style="font-size:1.1rem; color:#636e72;">🏆 荣誉星球</strong>
-    </div>
-    <div class="switch-container">
-      <div class="switch-item" id="sw-week" onclick="setRankType('week')">📅 本周</div>
-      <div class="switch-item active" id="sw-month" onclick="setRankType('month')">🌙 本月</div>
-      <div class="switch-item" id="sw-total" onclick="setRankType('total')">🌟 总分</div>
-    </div>
-    <div class="planet-rank-container" id="leaderboardArea"></div>
-  </section>
-
-  <section class="bubble-card wallet-section" onclick="openModal('moneyModal')">
-    <strong style="color:#e67e22; font-size:1rem;">💰 零花钱金库</strong>
-    <div class="balance-num">
-      <span style="font-size:1.2rem;" id="currencySym">￥</span><span id="balanceDisplay">0.00</span>
-    </div>
-    <p style="font-size:0.85rem; color:#f39c12; font-weight:bold;">点点看 记一笔账 📝</p>
-  </section>
-
-  <section class="bubble-card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <button class="btn-soft" onclick="changeDate(-1)" style="padding:10px 18px;">◀</button>
-      <div id="dateLabel" style="font-size:1.4rem; font-weight:900; color:var(--primary); text-shadow: 2px 2px 0px #e3f2fd;">2024.01.01</div>
-      <button class="btn-soft" onclick="changeDate(1)" style="padding:10px 18px;">▶</button>
-    </div>
-    <div class="child-name-list" id="childTabList"></div>
-    <div style="display:flex; gap:15px; margin-top:10px;">
-      <div style="flex:1; background:#f9fbfd; padding:15px; border-radius:28px; text-align:center; border:2px solid #f1f2f6;">
-        <div style="font-size:0.7rem; color:#999; margin-bottom:4px;">今日小红花</div>
-        <div id="dayScore" style="font-weight:900; color:var(--primary); font-size:1.4rem;">0</div>
-      </div>
-      <div style="flex:1; background:#f9fbfd; padding:15px; border-radius:28px; text-align:center; border:2px solid #f1f2f6;">
-        <div style="font-size:0.7rem; color:#999; margin-bottom:4px;">月度进度奖</div>
-        <div id="monthScore" style="font-weight:900; color:var(--success); font-size:1.4rem;">0</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="bubble-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-      <strong style="font-size:1.1rem;">📝 任务清单</strong>
-      <div class="parent-only" style="display:flex; gap:8px;">
-        <button onclick="toggleSortMode()" id="sortBtn" class="btn-sort">🔃 排序</button>
-        <button onclick="parentSecurityAuth(()=>openModal('addHabitModal'))" class="btn-main" style="font-size:0.75rem;">+ 任务</button>
-      </div>
-    </div>
-    <div id="habitContainer"></div>
-  </section>
-
-  <section id="approvalSection" class="bubble-card parent-only" style="display:none; border-top:4px solid var(--warning);">
-    <strong style="color:#d35400;">👩‍🏫 待确认申请</strong>
-    <div id="approvalList" style="margin-top:15px;"></div>
-  </section>
-
-  <div class="footer-bar parent-only">
-    <button class="btn-soft" onclick="parentSecurityAuth(()=>openModal('addChildModal'))"><i>👶</i>+成员</button>
-    <button class="btn-soft" onclick="openModal('syncModal')"><i>☁️</i>云同步</button>
-    <button class="btn-soft" onclick="parentSecurityAuth(handleCurrencyEdit)"><i>💰</i>货币</button>
-    <button class="btn-soft" onclick="openModal('changePwdModal')"><i>🔐</i>密码</button>
-  </div>
-
-  <!-- --- 弹窗集合 --- -->
-  <div class="modal" id="editHabitModal"><div class="modal-content"><h3>编辑任务 ✏️</h3><input type="text" id="editHabitName" placeholder="任务名"/><input type="number" id="editHabitPts" placeholder="分值"/><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('editHabitModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmEditHabit()" class="btn-main" style="flex:1;">保存</button></div></div></div>
-  <div class="modal" id="editChildModal"><div class="modal-content"><h3>修改宝贝名字 ✏️</h3><input type="text" id="editChildNameInput" placeholder="新的名字"/><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('editChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmEditChildName()" class="btn-main" style="flex:1;">保存</button></div></div></div>
-  <div class="modal" id="syncModal"><div class="modal-content"><h3>云同步 ☁️</h3><input type="password" id="ghTokenInput" placeholder="Token"/><div style="display:flex; gap:10px; margin:10px 0;"><button onclick="window.open('https://github.com/settings/tokens/new?description=HabitApp&scopes=gist','_blank')" style="height:45px; flex:1; background:#24292e; color:white; font-size:0.6rem; border-radius:15px;">一键获取</button><button onclick="alert('教程：登录GitHub生成Token并粘贴。')" style="height:45px; flex:1; background:var(--primary); color:white; font-size:0.6rem; border-radius:15px;">获取教程</button></div><button onclick="identifyCloud()" id="identifyBtn" class="btn-main" style="width:100%; background:var(--purple);">连接同步</button><button onclick="closeModal('syncModal')" style="width:100%; margin-top:10px; background:none; color:#999; border:none;">取消</button></div></div>
-  <div class="modal" id="pwdModal"><div class="modal-content"><h3 id="pwdTitle" style="color:var(--primary);">身份验证</h3><input type="password" id="pwdInput" placeholder="请输入密码"/><div style="display:flex; gap:12px; margin-top:15px;"><button onclick="closeModal('pwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAuth()" class="btn-main" style="flex:1;">确认</button></div><p onclick="openModal('recoveryModal')" style="text-align:center; font-size:0.7rem; color:#bbb; margin-top:15px; text-decoration:underline;">忘记密码？</p></div></div>
-  <div class="modal" id="moneyModal"><div class="modal-content"><h3>记账收支 📝</h3><select id="moneyType"><option value="income">➕ 存入（零花钱/奖励）</option><option value="expense">➖ 支出（买东西）</option></select><input type="number" id="moneyAmount" placeholder="金额"/><input type="text" id="moneyNote" placeholder="备注"/><div style="display:flex; gap:12px;"><button onclick="closeModal('moneyModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmMoney()" class="btn-main" style="flex:1; background:var(--gold);">登记</button></div></div></div>
-  <div class="modal" id="changePwdModal"><div class="modal-content"><h3>修改密码</h3><input type="password" id="oldPwdField" placeholder="原密码"/><input type="password" id="newPwdField1" placeholder="新密码"/><input type="password" id="newPwdField2" placeholder="确认新密码"/><div style="display:flex;gap:12px;"><button onclick="closeModal('changePwdModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmChangePwd()" class="btn-main" style="flex:1;">保存</button></div></div></div>
-  <div class="modal" id="addChildModal"><div class="modal-content"><h3>新成员</h3><input type="text" id="newChildName" placeholder="姓名"/><div style="display:flex;gap:12px;"><button onclick="closeModal('addChildModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddChild()" class="btn-main" style="flex:1;">确认</button></div></div></div>
-  <div class="modal" id="addHabitModal"><div class="modal-content"><h3>新任务</h3><input type="text" id="newHabitName" placeholder="名称"/><input type="number" id="newHabitPts" placeholder="分值"/><div style="display:flex;gap:12px;"><button onclick="closeModal('addHabitModal')" class="btn-soft" style="flex:1;">取消</button><button onclick="confirmAddHabit()" class="btn-main" style="flex:1;">保存</button></div></div></div>
-  <div class="modal" id="recoveryModal"><div class="modal-content"><h3>系统重置</h3><input type="password" id="recoveryField" placeholder="验证信息"/><button onclick="handleRecovery()" class="btn-main" style="width:100%; background:var(--danger);">确认</button></div></div>
-
-  <script>
-    const DEFAULT_HABITS = [{name:'📖 认真阅读',pts:3},{name:'✍️ 完成作业',pts:3},{name:'🏠 整理内务',pts:2},{name:'🛌 准时休息',pts:2},{name:'📺 电子超时',pts:-5},{name:'😤 乱发脾气',pts:-5}];
-    let state = { children: [{ id: '1', name: '宝贝', habits: [...DEFAULT_HABITS] }], checks: {}, ledgers: {}, settings: { currency: '￥' }, pwd: '123456' };
-    
-    const LS_ROLE_KEY = 'local_role_v11';
-    const LS_CHILD_KEY = 'local_child_v11';
-    let localRole = localStorage.getItem(LS_ROLE_KEY);
-    let activeId = localStorage.getItem(LS_CHILD_KEY) || '1';
-
-    function getTodayStr() {
-        const now = new Date();
-        return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-    }
-
-    let selectedDate = getTodayStr(), rankType = 'month', authCallback = null, isSorting = false, editingChildId = null, editingHabitIdx = null;
-    const CLOUD = { token: localStorage.getItem('gh_token_v10'), gistId: localStorage.getItem('gh_gist_id_v10'), file: 'habit_v10.json' };
-
-    window.onload = async () => {
-      const saved = localStorage.getItem('habit_v10_state');
-      if (saved) state = JSON.parse(saved);
-      if (!localRole) openModal('identityModal'); else applyRole(localRole);
-      if (CLOUD.token && CLOUD.gistId) await pull();
-      render();
-    };
-
-    function saveState() { localStorage.setItem('habit_v10_state', JSON.stringify(state)); }
-    function saveLocalSession() { localStorage.setItem(LS_ROLE_KEY, localRole); localStorage.setItem(LS_CHILD_KEY, activeId); }
-
-    // --- 身份逻辑 ---
-    function handleParentChoice() {
-        document.getElementById('pwdTitle').textContent = "身份验证 (家长)";
-        parentSecurityAuth(() => confirmRoleChoice('parent'));
-    }
-    function showChildSelector() {
-        document.getElementById('idPhase1').style.display = 'none';
-        document.getElementById('idPhase2').style.display = 'block';
-        const list = document.getElementById('childIdList');
-        list.innerHTML = state.children.map(c => `<button class="btn-soft" onclick="confirmRoleChoice('child', '${c.id}')" style="width:100%;">🧒 ${c.name}</button>`).join('');
-    }
-    function backToPhase1() { document.getElementById('idPhase1').style.display = 'block'; document.getElementById('idPhase2').style.display = 'none'; }
-    function confirmRoleChoice(role, childId) {
-        localRole = role; if (childId) activeId = childId;
-        saveLocalSession(); closeModal('identityModal'); applyRole(role); render();
-    }
-    function applyRole(role) {
-      document.body.className = 'role-' + role;
-      document.getElementById('currentRoleTag').textContent = '身份: ' + (role==='parent'?'家长':'孩子');
-    }
-    function switchRoleAction() {
-      if (localRole === 'child') handleParentChoice();
-      else if(confirm('确认切换到孩子模式？')) { openModal('identityModal'); backToPhase1(); }
-    }
-    function switchChild(id) {
-        if (id === activeId) return;
-        if (localRole === 'child') { document.getElementById('pwdTitle').textContent="切换成员需验证"; parentSecurityAuth(() => { activeId = id; saveLocalSession(); render(); }); }
-        else { activeId = id; saveLocalSession(); render(); }
-    }
-    function parentSecurityAuth(cb) { authCallback = cb; openModal('pwdModal'); }
-    function confirmAuth() {
-      const input = document.getElementById('pwdInput').value;
-      if (input === state.pwd || input === '911205') { closeModal('pwdModal'); if (authCallback) { authCallback(); authCallback = null; } }
-      else alert('密码错误');
-    }
-
-    // --- 任务编辑逻辑 ---
-    function promptEditHabit(idx) {
-        if (localRole !== 'parent') return;
-        editingHabitIdx = idx;
-        const child = state.children.find(c => c.id === activeId);
-        const habit = child.habits[idx];
-        openModal('editHabitModal');
-        document.getElementById('editHabitName').value = habit.name;
-        document.getElementById('editHabitPts').value = habit.pts;
-    }
-    function confirmEditHabit() {
-        const name = document.getElementById('editHabitName').value.trim();
-        const pts = parseInt(document.getElementById('editHabitPts').value);
-        if (name && !isNaN(pts)) {
-            const child = state.children.find(c => c.id === activeId);
-            child.habits[editingHabitIdx] = { name, pts };
-            closeModal('editHabitModal'); render(); syncPush();
-        }
-    }
-
-    // --- 渲染逻辑 ---
-    function render() {
-      document.getElementById('dateLabel').textContent = selectedDate.replace(/-/g, '.');
-      document.getElementById('currencySym').textContent = state.settings.currency;
-      const tabs = document.getElementById('childTabList');
-      tabs.innerHTML = state.children.map(c => `<div class="name-tab-wrap"><div class="name-tab ${c.id===activeId?'active':''}" onclick="switchChild('${c.id}')">${c.name}</div>${(localRole === 'parent') ? `<div class="edit-name-btn" onclick="promptEditChildName('${c.id}')">✏️</div>` : ''}</div>`).join('');
-      const child = state.children.find(c => c.id === activeId) || state.children[0];
-      const container = document.getElementById('habitContainer');
-      container.innerHTML = child.habits.map((h, idx) => {
-        const check = (state.checks[activeId] && state.checks[activeId][selectedDate]) ? state.checks[activeId][selectedDate][idx] : null;
-        const isChecked = !!check, isApproved = check ? check.approved : true;
-        let actionUI = `<div class="check-btn ${isChecked?(h.pts>0?'checked-pos':'checked-neg'):''}" onclick="toggleHabit(${idx})">${isChecked?'✓':''}</div>`;
-        if (isSorting && localRole === 'parent') actionUI = `<div class="sort-controls"><button class="btn-arrow" onclick="moveHabit(${idx},-1)">⬆️</button><button class="btn-arrow" onclick="moveHabit(${idx},1)">⬇️</button></div>`;
-        
-        return `<div class="habit-row ${!isApproved?'unapproved-row':''}">
-            <div class="habit-name-box" onclick="promptEditHabit(${idx})">
-                <div style="font-weight:900;">${h.name} ${(localRole === 'parent') ? '<span class="edit-btn-inline">✏️</span>' : ''}</div>
-                <div style="font-size:0.75rem; color:${h.pts>0?'var(--success)':'var(--danger)'}; font-weight:bold;">${h.pts>0?'+':''}${h.pts} 分</div>
-            </div>
-            ${actionUI}
-            ${(isSorting && localRole === 'parent') ? `<button onclick="delHabit(${idx})" style="background:none; box-shadow:none; color:var(--danger); margin-left:10px;">🗑️</button>` : ''}
-        </div>`;
-      }).join('');
-      renderLeaderboard(); renderWallet(); calcScores(); renderApprovals(); saveState();
-    }
-
-    // --- 业务功能 ---
-    function openModal(id) { const m = document.getElementById(id); m.querySelectorAll('input').forEach(i => i.value = ''); m.querySelectorAll('select').forEach(s => s.selectedIndex = 0); m.style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function setRankType(t) { rankType = t; document.querySelectorAll('.switch-item').forEach(el => el.classList.toggle('active', el.id === 'sw-' + t)); renderLeaderboard(); }
-    function toggleSortMode() { isSorting = !isSorting; document.getElementById('sortBtn').textContent = isSorting ? '✅ 完成' : '🔃 排序'; render(); }
-    function moveHabit(idx, dir) { const c = state.children.find(c => c.id === activeId); if (dir===-1 && idx>0) [c.habits[idx], c.habits[idx-1]] = [c.habits[idx-1], c.habits[idx]]; else if (dir===1 && idx<c.habits.length-1) [c.habits[idx], c.habits[idx+1]] = [c.habits[idx+1], c.habits[idx]]; render(); syncPush(); }
-    function toggleHabit(idx) { if (isSorting) return; if (!state.checks[activeId]) state.checks[activeId] = {}; if (!state.checks[activeId][selectedDate]) state.checks[activeId][selectedDate] = {}; if (state.checks[activeId][selectedDate][idx]) delete state.checks[activeId][selectedDate][idx]; else state.checks[activeId][selectedDate][idx] = { approved: (localRole === 'parent') }; render(); syncPush(); }
-    function confirmMoney() { const a = parseFloat(document.getElementById('moneyAmount').value); if (!a) return; if (!state.ledgers[activeId]) state.ledgers[activeId] = []; state.ledgers[activeId].push({ date: selectedDate, amount: a, type: document.getElementById('moneyType').value, note: document.getElementById('moneyNote').value || '记账', approved: (localRole === 'parent') }); closeModal('moneyModal'); render(); syncPush(); }
-    function renderWallet() { let bal = 0; (state.ledgers[activeId]||[]).forEach(t => { if(t.approved) bal += (t.type==='income'?1:-1)*t.amount; }); document.getElementById('balanceDisplay').textContent = bal.toFixed(2); }
-    function renderApprovals() { if (localRole !== 'parent') return; const area = document.getElementById('approvalList'); let html = ''; Object.keys(state.checks).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; Object.keys(state.checks[cId]).forEach(d => { Object.keys(state.checks[cId][d]).forEach(hIdx => { if(!state.checks[cId][d][hIdx].approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[打开] ${cName}: ${state.children.find(x=>x.id===cId).habits[hIdx].name}</span><button onclick="approveAction('check','${cId}','${d}',${hIdx})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">确认</button></div>`; }); }); }); Object.keys(state.ledgers).forEach(cId => { const cName = state.children.find(x=>x.id===cId)?.name; state.ledgers[cId].forEach((t, i) => { if(!t.approved) html += `<div class="approval-item" style="background:#fffbe6; padding:12px; border-radius:20px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;"><span>[账本] ${cName}: ${t.amount}</span><button onclick="approveAction('ledger','${cId}',${i})" class="btn-main" style="padding:5px 12px; font-size:0.7rem;">确认</button></div>`; }); }); document.getElementById('approvalSection').style.display = html ? 'block' : 'none'; area.innerHTML = html; }
-    function approveAction(t, c, p1, p2) { if (t==='check') state.checks[c][p1][p2].approved = true; else state.ledgers[c][p1].approved = true; render(); syncPush(); }
-    function changeDate(n) { let d = new Date(selectedDate); d.setDate(d.getDate()+n); selectedDate = d.toISOString().split('T')[0]; render(); }
-    function renderLeaderboard() { const ranks = state.children.map(c => { let s = 0; const cks = state.checks[c.id] || {}; const d = new Date(selectedDate), day = d.getDay()||7, mon = new Date(d); mon.setDate(d.getDate()-day+1); const sun = new Date(d); sun.setDate(d.getDate()-day+7); const wS = mon.toISOString().split('T')[0], wE = sun.toISOString().split('T')[0], curM = selectedDate.substring(0,7); Object.keys(cks).forEach(dt => { let match = (rankType==='total' || (rankType==='month'&&dt.startsWith(curM)) || (rankType==='week'&&dt>=wS&&dt<=wE)); if(match) Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && c.habits[i]) s += c.habits[i].pts; }); }); return { name: c.name, score: s }; }).sort((a,b) => b.score - a.score); document.getElementById('leaderboardArea').innerHTML = ranks.map((r, i) => `<div class="planet-card ${i < 3 ? `rank-${i+1}` : ''}"><div class="planet-info"><div class="planet-avatar">${['🥇','🥈','🥉'][i] || '⭐'}</div><div><div class="planet-name">${r.name}</div><div class="rank-badge">${i+1}星球</div></div></div><div class="planet-score">${r.score}</div></div>`).join(''); }
-    function calcScores() { let d=0, m=0; const curM = selectedDate.substring(0,7), cks = state.checks[localRole==='parent'?activeId:activeId]||{}, hbs = state.children.find(c=>c.id===activeId).habits; Object.keys(cks).forEach(dt => { let ds = 0; Object.keys(cks[dt]).forEach(i => { if(cks[dt][i].approved && hbs[i]) ds += hbs[i].pts; }); if(dt===selectedDate) d = ds; if(dt.startsWith(curM)) m += ds; }); document.getElementById('dayScore').textContent = d; document.getElementById('monthScore').textContent = m; }
-    function handleCurrencyEdit() { const s = prompt('货币符号', state.settings.currency); if(s){state.settings.currency=s; render(); syncPush();}}
-    function confirmChangePwd() { const o = document.getElementById('oldPwdField').value, n1 = document.getElementById('newPwdField1').value, n2 = document.getElementById('newPwdField2').value; if(o!==state.pwd) return alert('原密码错误'); if(n1!==n2) return alert('输入不一致'); state.pwd=n1; saveState(); alert('成功'); closeModal('changePwdModal'); }
-    function handleRecovery() { if(document.getElementById('recoveryField').value==='911205'){state.pwd='123456'; saveState(); alert('重置为123456'); closeModal('recoveryModal');}}
-    function confirmAddChild() { const n = document.getElementById('newChildName').value; if(n){ state.children.push({id:Date.now().toString(),name:n,habits:[...DEFAULT_HABITS]}); closeModal('addChildModal'); render(); syncPush(); } }
-    function promptEditChildName(id) { editingChildId = id; document.getElementById('editChildNameInput').value = state.children.find(x=>x.id===id).name; openModal('editChildModal'); }
-    function confirmEditChildName() { const n = document.getElementById('editChildNameInput').value; if(n&&editingChildId){ state.children.find(x=>x.id===editingChildId).name = n; render(); syncPush(); closeModal('editChildModal'); } }
-    function confirmAddHabit() { const n = document.getElementById('newHabitName').value, p = parseInt(document.getElementById('newHabitPts').value); if(n&&!isNaN(p)){ state.children.find(c=>c.id===activeId).habits.push({name:n,pts:p}); closeModal('addHabitModal'); render(); syncPush(); } }
-    function delHabit(i) { if(confirm('确认删除吗？')) { state.children.find(c=>c.id===activeId).habits.splice(i,1); render(); syncPush(); } }
-    async function identifyCloud() { const t = document.getElementById('ghTokenInput').value; try { const res = await fetch('https://api.github.com/gists',{headers:{'Authorization':`token ${t}`}}); const gists = await res.json(), f = gists.find(g => g.files[CLOUD.file]); CLOUD.token = t; localStorage.setItem('gh_token_v10', t); if(f){ CLOUD.gistId = f.id; localStorage.setItem('gh_gist_id_v10', f.id); await pull(); } else await push(); render(); closeModal('syncModal'); } catch(e){ alert('云端失败'); } }
-    async function push() { if(!CLOUD.token) return; const url = CLOUD.gistId ? `https://api.github.com/gists/${CLOUD.gistId}` : 'https://api.github.com/gists'; await fetch(url, { method: CLOUD.gistId ? 'PATCH' : 'POST', headers: {'Authorization': `token ${CLOUD.token}`}, body: JSON.stringify({public:false,files:{[CLOUD.file]:{content:JSON.stringify(state)}}}) }); }
-    async function pull() { const res = await fetch(`https://api.github.com/gists/${CLOUD.gistId}`,{headers:{'Authorization':`token ${CLOUD.token}`}}); const g = await res.json(), s = JSON.parse(g.files[CLOUD.file].content); if(s) state = s; }
-    function syncPush() { if(CLOUD.token&&CLOUD.gistId) push(); }
-  </script>
+<body>
+<div class="shell">
+  <header><div><h1>🌱 儿童好习惯积分系统</h1><div class="muted">记录成长，清楚管理奖励与提醒</div></div><div class="top-actions"><button class="btn secondary" id="syncBtn">☁ GitHub 同步</button><button class="btn secondary" id="exportBtn">导出备份</button><button class="btn secondary" id="importBtn">导入备份</button><button class="btn" id="addChildBtn">＋ 添加儿童</button></div></header>
+  <div class="grid"><main><section class="card"><div class="section-title"><h2>儿童积分与小金库</h2><span class="muted" id="childCount"></span></div><div class="child-list" id="children"></div></section><section class="card"><div class="section-title"><h2>📅 每日记录</h2><div class="calendar-nav"><button type="button" class="btn ghost small" id="prevMonth" aria-label="上个月">‹</button><strong id="monthLabel"></strong><button type="button" class="btn ghost small" id="nextMonth" aria-label="下个月">›</button><button type="button" class="btn ghost small" id="todayBtn">今天</button></div></div><div class="calendar-weekdays" id="calendarWeekdays"></div><div class="calendar-days" id="calendarDays"></div><h3 id="selectedDateLabel" class="calendar-selected"></h3><div class="history" id="dayRecords"></div></section><section class="card"><div class="section-title"><h2>小金库记录</h2><span class="muted">存入与支出</span></div><div class="history" id="moneyHistory"></div></section><section class="card"><div class="section-title"><h2>最近积分记录</h2><span class="muted">加分、兑换和处罚</span></div><div class="history" id="history"></div></section></main><aside><section class="card"><h2>🏆 好习惯排行榜</h2><div class="muted">按当前可用奖励积分排序</div><div id="ranking"></div></section><section class="card"><div class="section-title"><h2>积分项目</h2><button class="btn small" id="addRuleBtn">＋ 自定义项目</button></div><div class="tabs"><button class="tab active" data-tab="good">好习惯</button><button class="tab" data-tab="bad">犯错</button><button class="tab" data-tab="reward">奖励兑换</button><button class="tab" data-tab="penalty">惩罚触发</button></div><div class="rule-list" id="rules"></div><p class="notice">奖励积分与犯错积分分别累计。兑换奖励或执行惩罚时，只扣除对应项目的门槛积分，剩余积分继续保留。</p></section></aside></div><div class="footer">数据保存在当前设备的浏览器。可用 GitHub 同步或导出备份在设备间转移资料。</div>
+</div>
+<dialog id="formDialog"><form id="form"><h2 id="dialogTitle"></h2><div id="formFields"></div><div class="row"><button type="button" class="btn ghost" id="cancelBtn">取消</button><button type="submit" class="btn">保存</button></div></form></dialog>
+<dialog id="syncDialog"><h2>☁ GitHub 同步</h2><p class="notice">无需填写仓库地址。首次使用时，请在自己的 GitHub 账号中建立名为 <strong>children-habits-vault</strong> 的私人仓库，并创建仅授权该仓库“Contents: Read and write”的 Fine-grained Token。已连接过的设备会继续使用原仓库。</p><label for="syncToken">GitHub Token</label><input id="syncToken" type="password" placeholder="github_pat_..." autocomplete="off"><label class="remember"><input id="rememberToken" type="checkbox" checked> 在本设备记住 Token，打开页面和每次录入后自动同步</label><p class="notice">勾选后，Token 保存在本设备浏览器中；请只在自己的设备上使用。Token 不写入导出的备份文件。首次在新设备使用，请先下载云端资料。</p><div id="syncStatus" class="notice" role="status"></div><div class="sync-actions"><button type="button" class="btn secondary" id="pullBtn">↓ 从 GitHub 下载</button><button type="button" class="btn" id="pushBtn">↑ 上传到 GitHub</button><button type="button" class="btn ghost" id="closeSyncBtn">关闭</button></div></dialog>
+<input type="file" id="fileInput" accept="application/json,.json" hidden>
+<script>
+(()=>{
+const KEY='kids-habits-v1';
+const defaults=[{id:'g1',type:'good',name:'主动整理玩具',points:2},{id:'g2',type:'good',name:'按时完成作业',points:3},{id:'g3',type:'good',name:'主动刷牙',points:1},{id:'b1',type:'bad',name:'乱扔玩具',points:2},{id:'b2',type:'bad',name:'不遵守约定',points:3},{id:'r1',type:'reward',name:'选择周末活动',points:20},{id:'r2',type:'reward',name:'兑换小礼物',points:30},{id:'p1',type:'penalty',name:'减少屏幕时间',points:10}];
+let state=load(),tab='good',dialogMode='',context={};
+const calendarNow=new Date();let calendarYear=calendarNow.getFullYear(),calendarMonth=calendarNow.getMonth(),selectedDay=calendarNow.getDate();
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&Array.isArray(v.children)&&Array.isArray(v.rules)&&Array.isArray(v.history)){v.wallet=Array.isArray(v.wallet)?v.wallet:[];return v}}catch(e){}return {children:[],rules:defaults,history:[],wallet:[]}}
+function save(fromCloud=false){localStorage.setItem(KEY,JSON.stringify(state));if(!fromCloud){localStorage.setItem('kids-habits-sync-dirty','1');scheduleAutoSync()}render()}
+function el(tag,attrs={},children=[]){const x=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')x.className=v;else if(k==='text')x.textContent=v;else x.setAttribute(k,v)}for(const c of children)x.append(c);return x}
+function by(id){return document.getElementById(id)}
+function nameOf(id){return state.children.find(c=>c.id===id)?.name||'已删除儿童'}
+function scores(id){let good=0,bad=0;for(const h of state.history){if(h.childId!==id)continue;if(h.type==='good')good+=h.points;if(h.type==='bad')bad+=h.points;if(h.type==='reward')good-=h.points;if(h.type==='penalty')bad-=h.points}return {good,bad}}
+function money(id){let given=0,spent=0;for(const x of state.wallet){if(x.childId!==id)continue;if(x.type==='give')given+=x.cents;else spent+=x.cents}return {given,spent,balance:given-spent}}
+function yuan(cents){return '¥'+(cents/100).toFixed(2)}
+function render(){renderChildren();renderRanking();renderRules();renderHistory();renderMoneyHistory();renderCalendar()}
+function renderChildren(){const box=by('children');box.replaceChildren();by('childCount').textContent=state.children.length+' 位儿童';if(!state.children.length){box.append(el('div',{class:'empty',text:'还没有儿童，点击右上角添加。'}));return}for(const c of state.children){const s=scores(c.id),m=money(c.id),card=el('div',{class:'child'}),head=el('div',{class:'child-head'}),title=el('div');title.append(el('span',{class:'avatar',text:c.name.slice(0,1)}),el('strong',{text:c.name}));const edit=el('button',{class:'btn ghost small',text:'编辑'});edit.onclick=()=>openChild(c);head.append(title,edit);const ss=el('div',{class:'scores'});for(const [cls,value,label] of [['score',s.good,'奖励积分'],['score bad',s.bad,'犯错积分']]){const a=el('div',{class:cls});a.append(el('strong',{text:value}),el('span',{text:label}));ss.append(a)}const wallet=el('div',{class:'wallet-summary'});wallet.append(el('strong',{text:'💰 小金库 '+yuan(m.balance)}),el('span',{text:'已存入 '+yuan(m.given)+' · 已支出 '+yuan(m.spent)}));const habitGroup=el('div',{class:'action-group habit-group'});habitGroup.append(el('div',{class:'group-label',text:'习惯积分'}));const acts=el('div',{class:'child-actions'});for(const [type,text] of [['good','＋ 好习惯'],['bad','＋ 犯错'],['reward','兑换奖励'],['penalty','执行惩罚']]){const b=el('button',{class:'btn small '+(type==='good'?'':'secondary'),text});b.onclick=()=>openAction(c,type);acts.append(b)}habitGroup.append(acts);const walletGroup=el('div',{class:'action-group wallet-group'});walletGroup.append(el('div',{class:'group-label',text:'小金库'}),wallet);const moneyActs=el('div',{class:'child-actions money-actions'});for(const [type,text] of [['give','＋ 存入（零花钱/奖励）'],['spend','－ 支出（买东西）']]){const b=el('button',{class:'btn small wallet-btn',text});b.onclick=()=>openMoney(c,type);moneyActs.append(b)}walletGroup.append(moneyActs);card.append(head,ss,habitGroup,walletGroup);box.append(card)}}
+function renderRanking(){const box=by('ranking');box.replaceChildren();const ranked=state.children.map(c=>({...c,score:scores(c.id).good})).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'zh-CN'));if(!ranked.length){box.append(el('div',{class:'empty',text:'添加儿童后显示排名'}));return}ranked.forEach((c,i)=>{const row=el('div',{class:'rank'});row.append(el('span',{class:'rank-num',text:String(i+1)}),el('span',{class:'rank-name',text:c.name}),el('span',{class:'rank-score',text:c.score+' 分'}));box.append(row)})}
+function renderRules(){const box=by('rules');box.replaceChildren();for(const t of document.querySelectorAll('.tab'))t.classList.toggle('active',t.dataset.tab===tab);const rules=state.rules.filter(r=>r.type===tab);if(!rules.length){box.append(el('div',{class:'empty',text:'暂无项目，点击“自定义项目”添加。'}));return}for(const r of rules){const row=el('div',{class:'rule'}),left=el('div');left.append(el('div',{class:'rule-title',text:r.name}),el('span',{class:'pill '+(['bad','penalty'].includes(tab)?'bad':''),text:r.points+' 分'+(['reward','penalty'].includes(tab)?'触发':'/次')}));const b=el('button',{class:'btn ghost small',text:'编辑'});b.onclick=()=>openRule(r);row.append(left,b);box.append(row)}}
+function renderHistory(){const box=by('history');box.replaceChildren();if(!state.history.length){box.append(el('div',{class:'empty',text:'暂无记录'}));return}for(const h of [...state.history].reverse().slice(0,30)){const row=el('div',{class:'history-item'}),left=el('div');left.append(el('div',{class:'rule-title',text:nameOf(h.childId)+' · '+h.name}),el('div',{class:'muted',text:new Date(h.date).toLocaleString('zh-CN')}));const sign=['reward','penalty'].includes(h.type)?'−':'＋';row.append(left,el('strong',{text:sign+h.points+' 分'}));box.append(row)}}
+function renderMoneyHistory(){const box=by('moneyHistory');box.replaceChildren();if(!state.wallet.length){box.append(el('div',{class:'empty',text:'暂无小金库记录'}));return}for(const x of [...state.wallet].reverse().slice(0,30)){const row=el('div',{class:'history-item'}),left=el('div');left.append(el('div',{class:'rule-title',text:nameOf(x.childId)+' · '+x.note}),el('div',{class:'muted',text:(x.type==='give'?'存入（零花钱/奖励）':'支出（买东西）')+' · '+new Date(x.date).toLocaleString('zh-CN')}));row.append(left,el('strong',{text:(x.type==='give'?'+':'−')+yuan(x.cents)}));box.append(row)}}
+function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return '';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function selectedDateKey(){return calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-'+String(selectedDay).padStart(2,'0')}
+function renderCalendar(){by('monthLabel').textContent=calendarYear+'年'+(calendarMonth+1)+'月';const weekdays=by('calendarWeekdays');weekdays.replaceChildren(...['一','二','三','四','五','六','日'].map(x=>el('span',{text:x})));const counts=new Map();for(const [items,type] of [[state.history,'points'],[state.wallet,'money']])for(const item of items){const key=localDateKey(item.date);if(!key)continue;const c=counts.get(key)||{points:0,money:0};c[type]++;counts.set(key,c)}const box=by('calendarDays');box.replaceChildren();const first=(new Date(calendarYear,calendarMonth,1).getDay()+6)%7,total=new Date(calendarYear,calendarMonth+1,0).getDate(),todayKey=localDateKey(new Date());for(let i=0;i<first;i++)box.append(el('span',{class:'calendar-day outside'}));for(let day=1;day<=total;day++){const key=calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),c=counts.get(key),button=el('button',{type:'button',class:'calendar-day'+(key===todayKey?' today':'')+(day===selectedDay?' selected':''),'aria-label':key+'，'+((c?.points||0)+(c?.money||0))+'条记录',text:day});const dots=el('span',{class:'calendar-dots'});if(c?.points)dots.append(el('span',{class:'calendar-dot'}));if(c?.money)dots.append(el('span',{class:'calendar-dot money'}));button.append(dots);button.onclick=()=>{selectedDay=day;renderCalendar()};box.append(button)}renderDayRecords()}
+function renderDayRecords(){by('selectedDateLabel').textContent=calendarYear+'年'+(calendarMonth+1)+'月'+selectedDay+'日';const key=selectedDateKey(),items=[...state.history.filter(x=>localDateKey(x.date)===key).map(x=>({kind:'points',...x})),...state.wallet.filter(x=>localDateKey(x.date)===key).map(x=>({kind:'money',...x}))].sort((a,b)=>new Date(a.date)-new Date(b.date)),box=by('dayRecords');box.replaceChildren();if(!items.length){box.append(el('div',{class:'empty',text:'这一天还没有记录'}));return}for(const x of items){const row=el('div',{class:'history-item'}),left=el('div'),isMoney=x.kind==='money',label=isMoney?(x.type==='give'?'小金库 · 存入':'小金库 · 支出'):'习惯积分 · '+({good:'好习惯',bad:'犯错',reward:'兑换奖励',penalty:'执行惩罚'}[x.type]||'记录'),subtract=isMoney?x.type==='spend':['reward','penalty'].includes(x.type);left.append(el('div',{class:'rule-title',text:nameOf(x.childId)+' · '+(x.note||x.name)}),el('div',{class:'day-record-tag',text:label+' · '+new Date(x.date).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}));row.append(left,el('strong',{class:'day-record-amount',text:(subtract?'−':'+')+(isMoney?yuan(x.cents):x.points+' 分')}));box.append(row)}}
+function field(label,id,type='text',value='',attrs={}){const l=el('label',{for:id,text:label}),i=el('input',{id,type,required:'',...attrs});i.value=value;return [l,i]}
+function show(title,fields,onSave){by('dialogTitle').textContent=title;by('formFields').replaceChildren(...fields);context.onSave=onSave;by('formDialog').showModal()}
+function openChild(c){const name=field('姓名或昵称','childName','text',c?.name||'',{maxlength:'30'});const fields=[...name];if(c){const del=el('button',{type:'button',class:'btn danger small',text:'删除儿童及其记录'});del.onclick=()=>{if(confirm('确定删除“'+c.name+'”及全部积分、小金库记录吗？')){state.children=state.children.filter(x=>x.id!==c.id);state.history=state.history.filter(x=>x.childId!==c.id);state.wallet=state.wallet.filter(x=>x.childId!==c.id);by('formDialog').close();save()}};fields.push(del)}show(c?'编辑儿童':'添加儿童',fields,()=>{const value=by('childName').value.trim();if(!value)return false;if(c)c.name=value;else state.children.push({id:uid(),name:value});save();return true})}
+function openRule(r){const names={good:'好习惯',bad:'犯错',reward:'奖励兑换',penalty:'惩罚触发'};const type=el('select',{id:'ruleType'});for(const [k,v] of Object.entries(names)){const option=el('option',{value:k,text:v});type.append(option)}type.value=r?.type||tab;const fields=[el('label',{for:'ruleType',text:'项目类型'}),type,...field('项目名称','ruleName','text',r?.name||'',{maxlength:'40'}),...field('每次积分 / 触发门槛','rulePoints','number',r?.points||'',{min:'1',step:'1'})];if(r){const del=el('button',{type:'button',class:'btn danger small',text:'删除项目'});del.onclick=()=>{if(confirm('确定删除这个项目吗？已有历史记录会保留。')){state.rules=state.rules.filter(x=>x.id!==r.id);by('formDialog').close();save()}};fields.push(del)}show(r?'编辑积分项目':'添加积分项目',fields,()=>{const name=by('ruleName').value.trim(),points=Number(by('rulePoints').value),type=by('ruleType').value;if(!name||!Number.isInteger(points)||points<=0)return false;if(r)Object.assign(r,{name,points,type});else state.rules.push({id:uid(),name,points,type});tab=type;save();return true})}
+function openAction(c,type){const available=state.rules.filter(r=>r.type===type),s=scores(c.id),balance=['good','reward'].includes(type)?s.good:s.bad;const title={good:'记录好习惯',bad:'记录犯错',reward:'兑换奖励',penalty:'执行惩罚'}[type];if(!available.length){alert('请先添加对应的积分项目。');tab=type;renderRules();return}const select=el('select',{id:'actionRule'});for(const r of available)select.append(el('option',{value:r.id,text:r.name+' · '+r.points+' 分'}));const info=el('p',{class:'notice',text:'当前'+(['good','reward'].includes(type)?'奖励':'犯错')+'积分：'+balance+' 分'});show(c.name+' · '+title,[el('label',{for:'actionRule',text:'选择项目'}),select,info],()=>{const r=state.rules.find(x=>x.id===select.value);if(!r)return false;const current=scores(c.id),usable=['good','reward'].includes(type)?current.good:current.bad;if(['reward','penalty'].includes(type)&&usable<r.points){alert('积分不足，当前 '+usable+' 分，需要 '+r.points+' 分。');return false}state.history.push({id:uid(),childId:c.id,type,ruleId:r.id,name:r.name,points:r.points,date:new Date().toISOString()});save();return true})}
+function openMoney(c,type){const balance=money(c.id).balance;show(c.name+' · '+(type==='give'?'存入（零花钱/奖励）':'支出（买东西）'),[...field('金额（元）','moneyAmount','number','',{min:'0.01',step:'0.01',inputmode:'decimal'}),...field('备注','moneyNote','text','',{maxlength:'60'}),el('p',{class:'notice',text:'当前小金库余额：'+yuan(balance)})],()=>{const amount=by('moneyAmount').value.trim(),note=by('moneyNote').value.trim(),cents=Math.round(Number(amount)*100);if(!amount||!Number.isSafeInteger(cents)||cents<=0){alert('请输入正确的金额。');return false}if(type==='spend'&&cents>money(c.id).balance){alert('支出不能超过当前小金库余额。');return false}state.wallet.push({id:uid(),childId:c.id,type,cents,note:note||(type==='give'?'存入（零花钱/奖励）':'支出（买东西）'),date:new Date().toISOString()});save();return true})}
+by('form').onsubmit=e=>{e.preventDefault();if(context.onSave?.())by('formDialog').close()};by('cancelBtn').onclick=()=>by('formDialog').close();by('addChildBtn').onclick=()=>openChild();by('addRuleBtn').onclick=()=>openRule();document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.tab;renderRules()});
+by('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a',{href:url,download:'儿童好习惯积分备份-'+new Date().toISOString().slice(0,10)+'.json'});a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+by('importBtn').onclick=()=>by('fileInput').click();by('fileInput').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.children)||!Array.isArray(data.rules)||!Array.isArray(data.history)||data.wallet!==undefined&&!Array.isArray(data.wallet))throw Error('文件格式不正确');if(!confirm('导入会覆盖当前所有数据，确定继续吗？'))return;state={...data,wallet:data.wallet||[]};save();alert('导入成功')}catch(err){alert('导入失败：'+err.message)}finally{e.target.value=''}};
+function moveMonth(delta){const date=new Date(calendarYear,calendarMonth+delta,1);calendarYear=date.getFullYear();calendarMonth=date.getMonth();selectedDay=1;renderCalendar()}
+by('prevMonth').onclick=()=>moveMonth(-1);by('nextMonth').onclick=()=>moveMonth(1);by('todayBtn').onclick=()=>{const d=new Date();calendarYear=d.getFullYear();calendarMonth=d.getMonth();selectedDay=d.getDate();renderCalendar()};
+const SYNC_REPO_KEY='kids-habits-github-repo',SYNC_TOKEN_KEY='kids-habits-github-token',SYNC_DIRTY_KEY='kids-habits-sync-dirty',SYNC_FILE='children-habits-data.json';
+let syncBusy=false,syncBlocked=false,syncTimer=0,localRevision=0;
+function syncStatus(message){by('syncStatus').textContent=message;by('syncBtn').textContent=message.startsWith('失败')||message.startsWith('需要')?'☁ 同步需处理':'☁ GitHub 同步'}
+async function syncConfig(){const token=by('syncToken').value.trim();if(!token)throw Error('请填写 GitHub Token。');let repo=localStorage.getItem(SYNC_REPO_KEY);if(!repo){const user=await githubRequest('https://api.github.com/user',token);if(!user?.login)throw Error('无法识别 GitHub 账号，请检查 Token。');const preferred=user.login+'/children-habits-vault',repos=await githubRequest('https://api.github.com/user/repos?per_page=100&affiliation=owner',token);repo=preferred;if(Array.isArray(repos)&&!repos.some(x=>x.full_name===preferred)){const privateRepos=repos.filter(x=>x.private).slice(0,50),matches=await Promise.all(privateRepos.map(async x=>{const file=await githubRequest('https://api.github.com/repos/'+x.full_name+'/contents/'+SYNC_FILE,token);return file?.type==='file'?x.full_name:null}));const found=matches.filter(Boolean);if(found.length===1)repo=found[0];if(found.length>1)throw Error('发现多个旧数据仓库，请先在原设备完成同步。')}localStorage.setItem(SYNC_REPO_KEY,repo)}if(by('rememberToken').checked)localStorage.setItem(SYNC_TOKEN_KEY,token);else localStorage.removeItem(SYNC_TOKEN_KEY);return {repo,token,url:'https://api.github.com/repos/'+repo+'/contents/'+SYNC_FILE,shaKey:'kids-habits-github-sha:'+repo}}
+async function githubRequest(url,token,options={}){const response=await fetch(url,{...options,cache:'no-store',headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',...(options.headers||{})}});if(response.status===404)return null;let data={};try{data=await response.json()}catch(e){}if(!response.ok)throw Error('GitHub 返回 '+response.status+'：'+(data.message||'请检查仓库与 Token 权限'));return data}
+function decodeGithub(content){const bytes=Uint8Array.from(atob(content.replace(/\s/g,'')),c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
+function encodeGithub(value){const bytes=new TextEncoder().encode(value);let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(binary)}
+function validData(data){return data&&Array.isArray(data.children)&&Array.isArray(data.rules)&&Array.isArray(data.history)&&(data.wallet===undefined||Array.isArray(data.wallet))}
+function hasLocalData(){return state.children.length>0||state.history.length>0||state.wallet.length>0}
+function scheduleAutoSync(){localRevision++;if(!by('syncToken').value.trim()){syncStatus('需要设置 GitHub Token，当前记录仅保存在本机。');return}if(syncBlocked)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>runSync(async()=>{await uploadData(await syncConfig())}),500)}
+async function uploadData(c,knownRemote){const remote=knownRemote===undefined?await githubRequest(c.url,c.token):knownRemote,lastSha=localStorage.getItem(c.shaKey);if(remote&&remote.sha!==lastSha)throw Error('云端有更新，请先下载并核对；本地记录仍已保存。');const repository=await githubRequest('https://api.github.com/repos/'+c.repo,c.token);if(!repository)throw Error('找不到私人仓库 '+c.repo+'。请先在 GitHub 建立它，并授权 Token。');if(!repository.private)throw Error('仓库必须设为私人仓库，才能上传儿童资料。');const revision=localRevision,body={message:'更新儿童好习惯资料',content:encodeGithub(JSON.stringify(state,null,2))};if(remote)body.sha=remote.sha;const result=await githubRequest(c.url,c.token,{method:'PUT',body:JSON.stringify(body)});if(!result?.content?.sha)throw Error('上传结果异常，请检查仓库。');localStorage.setItem(c.shaKey,result.content.sha);if(revision===localRevision)localStorage.removeItem(SYNC_DIRTY_KEY);syncStatus('已同步到 GitHub。')}
+function applyCloud(c,remote){if(!remote?.content||remote.type!=='file'||remote.truncated)throw Error('云端文件无法完整读取。');const data=JSON.parse(decodeGithub(remote.content));if(!validData(data))throw Error('云端文件格式不正确。');state={...data,wallet:data.wallet||[]};save(true);localStorage.removeItem(SYNC_DIRTY_KEY);localStorage.setItem(c.shaKey,remote.sha);syncStatus('已从 GitHub 更新资料。')}
+async function runSync(task){if(syncBusy)return;syncBusy=true;by('pullBtn').disabled=by('pushBtn').disabled=true;syncStatus('正在连接 GitHub…');try{await task();syncBlocked=false}catch(e){syncBlocked=true;syncStatus('失败：'+e.message)}finally{syncBusy=false;by('pullBtn').disabled=by('pushBtn').disabled=false;if(!syncBlocked&&localStorage.getItem(SYNC_DIRTY_KEY)==='1'&&by('syncToken').value.trim())scheduleAutoSync()}}
+by('syncBtn').onclick=()=>{by('syncToken').value=localStorage.getItem(SYNC_TOKEN_KEY)||by('syncToken').value;by('rememberToken').checked=!!localStorage.getItem(SYNC_TOKEN_KEY);by('syncDialog').showModal()};by('closeSyncBtn').onclick=()=>by('syncDialog').close();
+by('pullBtn').onclick=()=>runSync(async()=>{const c=await syncConfig(),remote=await githubRequest(c.url,c.token);if(!remote)throw Error('仓库中还没有同步文件，请先在有数据的设备上传。');if(!confirm('从 GitHub 下载会覆盖本设备当前的全部积分和小金库资料。确定继续吗？')){syncStatus('已取消下载');return}applyCloud(c,remote)});
+by('pushBtn').onclick=()=>runSync(async()=>{const c=await syncConfig();await uploadData(c)});
+async function syncOnOpen(){const token=localStorage.getItem(SYNC_TOKEN_KEY);if(!token)return;by('syncToken').value=token;by('rememberToken').checked=true;await runSync(async()=>{const c=await syncConfig(),remote=await githubRequest(c.url,c.token),lastSha=localStorage.getItem(c.shaKey);if(localStorage.getItem(SYNC_DIRTY_KEY)==='1'){await uploadData(c,remote);return}if(remote){if(remote.sha===lastSha){syncStatus('云端资料已是最新。');return}if(!lastSha&&hasLocalData())throw Error('本设备有资料且尚未连接此仓库，请在同步设置中核对后手动下载。');if(localStorage.getItem(SYNC_DIRTY_KEY)==='1')throw Error('本设备刚有新记录，请先检查同步状态。');applyCloud(c,remote)}else if(hasLocalData())await uploadData(c,null);else syncStatus('仓库中暂无资料。')})}
+render();
+syncOnOpen();
+})();
+</script>
 </body>
 </html>
